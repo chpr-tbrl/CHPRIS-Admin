@@ -26,7 +26,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - PORT -> development port
 - SASS_PATH -> location of sass files
 - REACT_APP_API_URL -> Backend API URL
-* REACT_APP_API_VERSION -> API version
+- REACT_APP_API_VERSION -> API version
 - HTTPS -> Enable or disable https
 - SSL_CRT_FILE -> Location of SSL CRT file
 - SSL_KEY_FILE -> Location of SSL Key file
@@ -37,7 +37,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 yarn start
 ```
 
-Open [http://localhost:19000](http://localhost:19000) to view it in the browser.
+Open [http://localhost:19100](http://localhost:19100) to view it in the browser.
 
 The page will reload if you make edits.
 
