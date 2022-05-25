@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, Fragment } from "react";
 import { PageHeader, ActionCard, Spacer } from "components";
 import {
   Row,
@@ -14,6 +14,7 @@ import {
   TableRow,
   TableBody,
   TableToolbar,
+  DataTableSkeleton,
   TableHeader,
   TableContainer,
   TableBatchAction,
@@ -32,11 +33,19 @@ import {
   TrashCan,
   Save,
 } from "@carbon/icons-react";
+import { useGetUsersQuery } from "services";
 
 const Records = () => {
   const [open, setOpen] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [selectedRow, setSelectedRow] = useState({});
+
+  const {
+    data: rows = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useGetUsersQuery();
 
   const headers = [
     {
@@ -48,8 +57,8 @@ const Records = () => {
       header: "Name",
     },
     {
-      key: "role",
-      header: "Role",
+      key: "type_of_user",
+      header: "Type",
     },
     {
       key: "region",
@@ -59,44 +68,21 @@ const Records = () => {
       key: "site",
       header: "Site",
     },
-  ];
-
-  const rows = [
     {
-      id: "1",
-      name: "Person one",
-      role: "Data-collector",
-      region: "North-West",
-      site: "Regional Hospital",
-    },
-    {
-      id: "2",
-      name: "Person two",
-      role: "Admin",
-      region: "North-West",
-      site: "Regional Hospital",
-    },
-    {
-      id: "3",
-      name: "Person three",
-      role: "Data-collector",
-      region: "North-West",
-      site: "Regional Hospital",
-    },
-    {
-      id: "4",
-      name: "Person four",
-      role: "Data-collector",
-      region: "North-West",
-      site: "Regional Hospital",
+      key: "state",
+      header: "State",
     },
   ];
 
   function handleRowSelection(row) {
     setShowActions(true);
-
     let user = rows.find((user) => user.id === row.cells[0]?.value);
     setSelectedRow(user);
+  }
+
+  function closeActions() {
+    setShowActions(false);
+    setSelectedRow({});
   }
 
   return (
@@ -108,103 +94,133 @@ const Records = () => {
       />
       <Spacer h={7} />
 
-      <DataTable rows={rows} headers={headers} radio>
-        {({
-          rows,
-          headers,
-          getHeaderProps,
-          getRowProps,
-          getToolbarProps,
-          getBatchActionProps,
-          onInputChange,
-          selectedRows,
-          getTableProps,
-          getSelectionProps,
-          getTableContainerProps,
-        }) => {
-          const batchActionProps = getBatchActionProps();
-
-          return (
-            <TableContainer
-              title="DataTable"
-              description="With batch actions"
-              {...getTableContainerProps()}
-            >
-              <TableToolbar {...getToolbarProps()}>
-                <TableBatchActions
-                  shouldShowBatchActions={showActions}
-                  onCancel={() => setShowActions(false)}
-                  totalSelected={1}
-                >
-                  <TableBatchAction
-                    tabIndex={batchActionProps.shouldShowBatchActions ? 0 : -1}
-                    renderIcon={TrashCan}
-                    onClick={() => console.log(selectedRows)}
+      {isLoading || isFetching ? (
+        <DataTableSkeleton columnCount={10} />
+      ) : (
+        <DataTable rows={rows} headers={headers} radio>
+          {({
+            rows,
+            headers,
+            getHeaderProps,
+            getRowProps,
+            getToolbarProps,
+            getBatchActionProps,
+            onInputChange,
+            selectedRows,
+            getTableProps,
+            getSelectionProps,
+            getTableContainerProps,
+          }) => {
+            const batchActionProps = getBatchActionProps();
+            return (
+              <TableContainer
+                title=""
+                description=""
+                {...getTableContainerProps()}
+              >
+                <TableToolbar {...getToolbarProps()}>
+                  <TableBatchActions
+                    shouldShowBatchActions={showActions}
+                    onCancel={() => closeActions()}
+                    totalSelected={1}
                   >
-                    Delete
-                  </TableBatchAction>
-                  <TableBatchAction
-                    tabIndex={batchActionProps.shouldShowBatchActions ? 0 : -1}
-                    renderIcon={Save}
-                    onClick={() => console.log(selectedRows)}
-                  >
-                    Update
-                  </TableBatchAction>
-                </TableBatchActions>
-                <TableToolbarContent
-                  aria-hidden={batchActionProps.shouldShowBatchActions}
-                >
-                  <TableToolbarSearch
-                    persistent
-                    tabIndex={batchActionProps.shouldShowBatchActions ? -1 : 0}
-                    onChange={onInputChange}
-                  />
-                  <Button
-                    tabIndex={batchActionProps.shouldShowBatchActions ? -1 : 0}
-                    onClick={() => alert("Add new row")}
-                    renderIcon={Renew}
-                    iconDescription="refresh"
-                  >
-                    Refresh
-                  </Button>
-                </TableToolbarContent>
-              </TableToolbar>
-              <Table {...getTableProps()}>
-                <TableHead>
-                  <TableRow>
-                    <th scope="col" />
-                    {headers.map((header, i) => (
-                      <TableHeader key={i} {...getHeaderProps({ header })}>
-                        {header.header}
-                      </TableHeader>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map((row, i) => (
-                    <TableRow
-                      key={i}
-                      {...getRowProps({ row })}
-                      onClick={() => handleRowSelection(row)}
+                    <TableBatchAction
+                      tabIndex={
+                        batchActionProps.shouldShowBatchActions ? 0 : -1
+                      }
+                      renderIcon={TrashCan}
+                      onClick={() => console.log(selectedRows)}
                     >
-                      <TableSelectRow
-                        {...getSelectionProps({ row })}
-                        checked={selectedRow.id === row.id}
-                      />
-                      {row.cells.map((cell) => (
-                        <TableCell key={cell.id}>{cell.value}</TableCell>
+                      Delete
+                    </TableBatchAction>
+                    <TableBatchAction
+                      tabIndex={
+                        batchActionProps.shouldShowBatchActions ? 0 : -1
+                      }
+                      renderIcon={Save}
+                      onClick={() => console.log(selectedRows)}
+                    >
+                      Update
+                    </TableBatchAction>
+                  </TableBatchActions>
+                  <TableToolbarContent
+                    aria-hidden={batchActionProps.shouldShowBatchActions}
+                  >
+                    <TableToolbarSearch
+                      persistent
+                      tabIndex={
+                        batchActionProps.shouldShowBatchActions ? -1 : 0
+                      }
+                      onChange={onInputChange}
+                    />
+                    <Button
+                      tabIndex={
+                        batchActionProps.shouldShowBatchActions ? -1 : 0
+                      }
+                      onClick={() => refetch()}
+                      renderIcon={Renew}
+                      iconDescription="refresh"
+                    >
+                      Refresh
+                    </Button>
+                  </TableToolbarContent>
+                </TableToolbar>
+                {rows.length ? (
+                  <Table {...getTableProps()}>
+                    <TableHead>
+                      <TableRow>
+                        <th scope="col" />
+                        {headers.map((header, i) => (
+                          <TableHeader key={i} {...getHeaderProps({ header })}>
+                            {header.header}
+                          </TableHeader>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {rows.map((row, i) => (
+                        <TableRow
+                          key={i}
+                          {...getRowProps({ row })}
+                          onClick={() => handleRowSelection(row)}
+                        >
+                          <TableSelectRow
+                            {...getSelectionProps({ row })}
+                            checked={selectedRow.id === row.id}
+                          />
+                          {row.cells.map((cell) => (
+                            <TableCell key={cell.id}>{cell.value}</TableCell>
+                          ))}
+                        </TableRow>
                       ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          );
-        }}
-      </DataTable>
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <Fragment>
+                    <Spacer h={5} />
+                    <h4
+                      style={{
+                        textAlign: "center",
+                      }}
+                    >
+                      No available users
+                    </h4>
+                    <Spacer h={5} />
+                  </Fragment>
+                )}
+              </TableContainer>
+            );
+          }}
+        </DataTable>
+      )}
 
       <Spacer h={7} />
-      <Pagination pageSizes={[10, 20, 30, 40, 50]} totalItems={200} />
+      {rows.length && (
+        <Pagination
+          pageSizes={[10, 20, 30, 40, 50]}
+          totalItems={rows.length || 0}
+        />
+      )}
       <Modal
         open={open}
         passiveModal
