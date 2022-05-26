@@ -1,6 +1,6 @@
 import React, { Fragment } from "react";
 import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
-import { Layout, DashLayout } from "components";
+import { Layout, DashLayout, RequireAuth } from "components";
 import { Toaster } from "react-hot-toast";
 import Login from "pages/login";
 import NotFound from "./pages/not-found";
@@ -24,7 +24,14 @@ function App() {
             <Route path="login" element={<Login />} />
           </Route>
 
-          <Route path="/dashboard" element={<DashLayout />}>
+          <Route
+            path="/dashboard"
+            element={
+              <RequireAuth>
+                <DashLayout />
+              </RequireAuth>
+            }
+          >
             <Route index element={<Navigate to="users" />} />
             <Route path="users">
               <Route index element={<Users />} />

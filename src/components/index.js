@@ -6,3 +6,4 @@ export * from "./PageHeader";
 export * from "./Cards";
 export * from "./TabBar";
 export * from "./Spacer";
+export * from "./RequireAuth";
