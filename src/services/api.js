@@ -24,16 +24,16 @@ export const API = createApi({
         body: data,
       }),
     }),
-    newUser: builder.mutation({
+    updateUser: builder.mutation({
       query: (data) => ({
-        url: `/users`,
-        method: "POST",
+        url: `/admin/users/${data.id}`,
+        method: "PUT",
         body: data,
       }),
     }),
     getUsers: builder.query({
-      query: (auth) => ({
-        url: "/users",
+      query: () => ({
+        url: "/admin/users",
         method: "GET",
       }),
     }),
@@ -45,5 +45,5 @@ export const {
   useLoginMutation,
   useSignupMutation,
   useGetUsersQuery,
-  useNewUserMutation,
+  useUpdateUserMutation,
 } = API;

@@ -1,15 +1,20 @@
 import React, { useState, Fragment } from "react";
-import { PageHeader, ActionCard, Spacer } from "components";
+import { PageHeader, Spacer } from "components";
 import {
   Row,
+  Form,
+  Stack,
   Button,
-  Modal,
   Column,
+  Dropdown,
   FlexGrid,
+  FormGroup,
+  Checkbox,
   DataTable,
   Pagination,
   Table,
   TableCell,
+  FormLabel,
   TableHead,
   TableRow,
   TableBody,
@@ -22,18 +27,26 @@ import {
   TableToolbarContent,
   TableBatchActions,
   TableToolbarSearch,
+  ModalBody,
+  ModalFooter,
+  ComposedModal,
+  ModalHeader,
+  InlineLoading,
 } from "@carbon/react";
 
+import { Renew, Account, TrashCan, Save } from "@carbon/icons-react";
+import { useGetUsersQuery, useUpdateUserMutation } from "services";
 import {
-  User,
-  Renew,
-  Person,
-  Account,
-  PillsAdd,
-  TrashCan,
-  Save,
-} from "@carbon/icons-react";
-import { useGetUsersQuery } from "services";
+  ROLES,
+  REGIONS,
+  SITES,
+  EXPORT_RANGE,
+  USER_UPDATE_SCHEMA,
+  USERS_TABLE_HEADERS,
+} from "schemas";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import toast from "react-hot-toast";
 
 const Records = () => {
   const [open, setOpen] = useState(false);
@@ -47,42 +60,40 @@ const Records = () => {
     refetch,
   } = useGetUsersQuery();
 
-  const headers = [
-    {
-      key: "id",
-      header: "User ID",
-    },
-    {
-      key: "name",
-      header: "Name",
-    },
-    {
-      key: "type_of_user",
-      header: "Type",
-    },
-    {
-      key: "region",
-      header: "Region",
-    },
-    {
-      key: "site",
-      header: "Site",
-    },
-    {
-      key: "state",
-      header: "State",
-    },
-  ];
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
+
+  const {
+    reset,
+    setValue,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(USER_UPDATE_SCHEMA),
+  });
 
   function handleRowSelection(row) {
     setShowActions(true);
     let user = rows.find((user) => user.id === row.cells[0]?.value);
+    reset(user);
     setSelectedRow(user);
   }
 
   function closeActions() {
     setShowActions(false);
     setSelectedRow({});
+    setOpen(false);
+    reset();
+  }
+
+  async function handleUserUpdate(data) {
+    try {
+      await updateUser(data).unwrap();
+      toast.success("user updated");
+      closeActions();
+      refetch();
+    } catch (error) {
+      // we handle errors with middleware
+    }
   }
 
   return (
@@ -93,11 +104,10 @@ const Records = () => {
         renderIcon={<Account size={42} />}
       />
       <Spacer h={7} />
-
       {isLoading || isFetching ? (
         <DataTableSkeleton columnCount={10} />
       ) : (
-        <DataTable rows={rows} headers={headers} radio>
+        <DataTable rows={rows} headers={USERS_TABLE_HEADERS} radio>
           {({
             rows,
             headers,
@@ -106,7 +116,6 @@ const Records = () => {
             getToolbarProps,
             getBatchActionProps,
             onInputChange,
-            selectedRows,
             getTableProps,
             getSelectionProps,
             getTableContainerProps,
@@ -129,7 +138,7 @@ const Records = () => {
                         batchActionProps.shouldShowBatchActions ? 0 : -1
                       }
                       renderIcon={TrashCan}
-                      onClick={() => console.log(selectedRows)}
+                      onClick={() => alert("delete acton")}
                     >
                       Delete
                     </TableBatchAction>
@@ -138,7 +147,7 @@ const Records = () => {
                         batchActionProps.shouldShowBatchActions ? 0 : -1
                       }
                       renderIcon={Save}
-                      onClick={() => console.log(selectedRows)}
+                      onClick={() => setOpen(true)}
                     >
                       Update
                     </TableBatchAction>
@@ -186,7 +195,7 @@ const Records = () => {
                         >
                           <TableSelectRow
                             {...getSelectionProps({ row })}
-                            checked={selectedRow.id === row.id}
+                            checked={selectedRow?.id === row.id}
                           />
                           {row.cells.map((cell) => (
                             <TableCell key={cell.id}>{cell.value}</TableCell>
@@ -213,46 +222,150 @@ const Records = () => {
           }}
         </DataTable>
       )}
-
       <Spacer h={7} />
       {rows.length && (
-        <Pagination
-          pageSizes={[10, 20, 30, 40, 50]}
-          totalItems={rows.length || 0}
-        />
+        <Pagination pageSizes={[10, 20, 30, 40, 50]} totalItems={rows.length} />
       )}
-      <Modal
-        open={open}
-        passiveModal
-        modalHeading="Available actions"
-        modalLabel="Record details"
-        aria-label="Available actions"
-        onRequestClose={() => setOpen(false)}
-      >
-        <FlexGrid fullWidth>
-          <PageHeader
-            title="User name"
-            description={`Manage and update records for user`}
-            renderIcon={<User size={42} />}
-          />
-          <Row>
-            <Column sm={4} md={4} lg={8} className="record--card__container">
-              <ActionCard
-                renderIcon={<Person size={32} />}
-                label="Information"
-                path="details"
+      <ComposedModal open={open}>
+        <ModalHeader
+          title="Update User"
+          label="User management"
+          buttonOnClick={() => closeActions()}
+        />
+        <Form onSubmit={handleSubmit(handleUserUpdate)}>
+          <ModalBody hasForm hasScrollingContent aria-label="User update modal">
+            <Stack orientation="horizontal" gap={10}>
+              <div>
+                <FormLabel>ID</FormLabel>
+                <p>{selectedRow?.id || "N/A"}</p>
+              </div>
+              <div>
+                <FormLabel>Patient's name</FormLabel>
+                <p>{selectedRow?.name || "N/A"}</p>
+              </div>
+            </Stack>
+            <Spacer h={5} />
+            <Stack gap={7}>
+              <Dropdown
+                id="roles"
+                titleText="Role"
+                label="Select role"
+                items={ROLES}
+                itemToString={(item) => item.text}
+                invalid={errors.type_of_user ? true : false}
+                invalidText={errors.type_of_user?.message}
+                initialSelectedItem={selectedRow?.type_of_user}
+                onChange={(evt) =>
+                  setValue("type_of_user", evt.selectedItem.id, {
+                    shouldValidate: true,
+                  })
+                }
               />
-            </Column>
-            <Column sm={4} md={4} lg={8} className="record--card__container">
-              <ActionCard
-                renderIcon={<PillsAdd size={32} />}
-                label="Collect specimens"
-                path="specimen-collection"
-              />
-            </Column>
-          </Row>
-        </FlexGrid>
-      </Modal>
+
+              <Row>
+                <Column>
+                  <Dropdown
+                    id="region"
+                    titleText="Region"
+                    label="Select region"
+                    items={REGIONS}
+                    itemToString={(item) => item.text}
+                    invalid={errors.region_id ? true : false}
+                    invalidText={errors.region_id?.message}
+                    initialSelectedItem={selectedRow?.region_id}
+                    onChange={(evt) =>
+                      setValue("region_id", evt.selectedItem.id, {
+                        shouldValidate: true,
+                      })
+                    }
+                  />
+                </Column>
+                <Column>
+                  <Dropdown
+                    id="site"
+                    titleText="Site"
+                    label="Select site"
+                    items={SITES}
+                    itemToString={(item) => item.text}
+                    invalid={errors.site_id ? true : false}
+                    invalidText={errors.site_id?.message}
+                    initialSelectedItem={selectedRow?.site_id}
+                    onChange={(evt) =>
+                      setValue("site_id", evt.selectedItem.id, {
+                        shouldValidate: true,
+                      })
+                    }
+                  />
+                </Column>
+              </Row>
+
+              <Row>
+                <Column>
+                  <Dropdown
+                    id="duration"
+                    titleText="Data acquistion duration"
+                    label="Select range"
+                    items={EXPORT_RANGE}
+                    itemToString={(item) => item.text}
+                    invalid={errors.exportable_range ? true : false}
+                    invalidText={errors.exportable_range?.message}
+                    initialSelectedItem={selectedRow?.exportable_range}
+                    onChange={(evt) =>
+                      setValue("exportable_range", evt.selectedItem.id, {
+                        shouldValidate: true,
+                      })
+                    }
+                  />
+                </Column>
+                <Column>
+                  <FormGroup legendText="Export permission">
+                    <Checkbox
+                      labelText="CSV"
+                      id="export-type-csv"
+                      onChange={() =>
+                        setValue("type_of_export", "csv", {
+                          shouldValidate: true,
+                        })
+                      }
+                    />
+                    <Checkbox
+                      labelText="PDF"
+                      value="pdf"
+                      id="export-type-pdf"
+                      onChange={() =>
+                        setValue("type_of_export", "pdf", {
+                          shouldValidate: true,
+                        })
+                      }
+                    />
+                  </FormGroup>
+                </Column>
+              </Row>
+            </Stack>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button
+              kind="secondary"
+              type="button"
+              onClick={() => closeActions()}
+            >
+              Cancel
+            </Button>
+            {!isUpdating ? (
+              <Button type="submit">Save</Button>
+            ) : (
+              <Column>
+                <InlineLoading
+                  status="active"
+                  iconDescription="Active loading indicator"
+                  description="processing ..."
+                />
+              </Column>
+            )}
+          </ModalFooter>
+        </Form>
+      </ComposedModal>
     </FlexGrid>
   );
 };
