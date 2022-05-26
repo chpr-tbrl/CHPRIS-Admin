@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 import Login from "pages/login";
 import NotFound from "./pages/not-found";
 import Users from "pages/users";
+import Regions from "pages/regions";
 
 function App() {
   return (
@@ -33,9 +34,8 @@ function App() {
             }
           >
             <Route index element={<Navigate to="users" />} />
-            <Route path="users">
-              <Route index element={<Users />} />
-            </Route>
+            <Route path="users" element={<Users />} />
+            <Route path="regions" element={<Regions />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

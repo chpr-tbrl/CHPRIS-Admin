@@ -53,9 +53,12 @@ export const DashNavbar = () => {
           <HeaderName href="#" prefix="CHPRIS">
             Admin
           </HeaderName>
-          <HeaderNavigation aria-label="users">
+          <HeaderNavigation aria-label="menu">
             <HeaderMenuItem element={NavLink} to="users">
               Users
+            </HeaderMenuItem>
+            <HeaderMenuItem element={NavLink} to="regions">
+              Regions
             </HeaderMenuItem>
           </HeaderNavigation>
           <SideNav
@@ -67,6 +70,9 @@ export const DashNavbar = () => {
               <HeaderSideNavItems>
                 <HeaderMenuItem element={NavLink} to="users">
                   Users
+                </HeaderMenuItem>
+                <HeaderMenuItem element={NavLink} to="regions">
+                  Regions
                 </HeaderMenuItem>
               </HeaderSideNavItems>
             </SideNavItems>

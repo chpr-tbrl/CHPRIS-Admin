@@ -34,3 +34,14 @@ export const USERS_TABLE_HEADERS = [
     header: "State",
   },
 ];
+
+export const REGIONS_TABLE_HEADERS = [
+  {
+    key: "id",
+    header: "Region ID",
+  },
+  {
+    key: "name",
+    header: "Region name",
+  },
+];

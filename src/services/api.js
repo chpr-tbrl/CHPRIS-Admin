@@ -37,6 +37,19 @@ export const API = createApi({
         method: "GET",
       }),
     }),
+    getRegions: builder.query({
+      query: () => ({
+        url: "/admin/regions",
+        method: "GET",
+      }),
+    }),
+    newRegion: builder.mutation({
+      query: (data) => ({
+        url: "/admin/regions",
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 // Export hooks for usage in functional components, which are
@@ -46,4 +59,6 @@ export const {
   useSignupMutation,
   useGetUsersQuery,
   useUpdateUserMutation,
+  useGetRegionsQuery,
+  useNewRegionMutation,
 } = API;
