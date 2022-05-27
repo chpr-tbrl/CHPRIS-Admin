@@ -48,7 +48,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import toast from "react-hot-toast";
 
-const Records = () => {
+const Users = () => {
   const [open, setOpen] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [selectedRow, setSelectedRow] = useState({});
@@ -370,4 +370,4 @@ const Records = () => {
   );
 };
 
-export default Records;
+export default Users;

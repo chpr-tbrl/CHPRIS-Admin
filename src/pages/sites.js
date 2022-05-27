@@ -33,31 +33,25 @@ import {
 import { Renew, Location, TrashCan, Save, Add } from "@carbon/icons-react";
 import { useGetRegionsQuery, useNewRegionMutation } from "services";
 import { REGIONS_TABLE_HEADERS } from "schemas";
-import { Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 
-const Regions = () => {
+const Sites = () => {
   const [open, setOpen] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [selectedRow, setSelectedRow] = useState({});
 
-  const { data = [], isLoading, isFetching, refetch } = useGetRegionsQuery();
+  const { region_id } = useParams();
+
+  const {
+    data: rows = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useGetRegionsQuery(region_id);
 
   const [newRegion, { isLoading: isUpdating }] = useNewRegionMutation();
-
-  const rows = useMemo(() => {
-    return data.map((item) => {
-      return {
-        ...item,
-        action: (
-          <Link className="cds--link" to={`../sites/${item.id}/${item.name}`}>
-            view sites
-          </Link>
-        ),
-      };
-    });
-  }, [data]);
 
   const {
     reset,
@@ -75,7 +69,7 @@ const Regions = () => {
   async function handleCreateRegion(data) {
     try {
       await newRegion(data).unwrap();
-      toast.success("region created");
+      toast.success("user updated");
       closeActions();
       reset();
       refetch();
@@ -159,7 +153,9 @@ const Regions = () => {
                       onClick={() => refetch()}
                       renderIcon={Renew}
                       iconDescription="refresh"
-                    />
+                    >
+                      Add region
+                    </Button>
                     <Button
                       tabIndex={
                         batchActionProps.shouldShowBatchActions ? -1 : 0
@@ -217,7 +213,7 @@ const Regions = () => {
         </DataTable>
       )}
       <Spacer h={7} />
-      {rows.length > 0 && (
+      {rows.length && (
         <Pagination pageSizes={[10, 20, 30, 40, 50]} totalItems={rows.length} />
       )}
       <ComposedModal open={open}>
@@ -266,4 +262,4 @@ const Regions = () => {
   );
 };
 
-export default Regions;
+export default Sites;
