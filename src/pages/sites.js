@@ -1,4 +1,4 @@
-import React, { useState, useMemo, Fragment } from "react";
+import React, { useState, Fragment } from "react";
 import { PageHeader, Spacer } from "components";
 import {
   Form,
@@ -31,8 +31,8 @@ import {
 } from "@carbon/react";
 
 import { Renew, Location, TrashCan, Save, Add } from "@carbon/icons-react";
-import { useGetRegionsQuery, useNewRegionMutation } from "services";
-import { REGIONS_TABLE_HEADERS } from "schemas";
+import { useGetSitesQuery, useNewSiteMutation } from "services";
+import { SITES_TABLE_HEADERS } from "schemas";
 import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -42,16 +42,17 @@ const Sites = () => {
   const [showActions, setShowActions] = useState(false);
   const [selectedRow, setSelectedRow] = useState({});
 
-  const { region_id } = useParams();
+  //region id and name
+  const { id, name } = useParams();
 
   const {
     data: rows = [],
     isLoading,
     isFetching,
     refetch,
-  } = useGetRegionsQuery(region_id);
+  } = useGetSitesQuery(id);
 
-  const [newRegion, { isLoading: isUpdating }] = useNewRegionMutation();
+  const [newSite, { isLoading: isUpdating }] = useNewSiteMutation();
 
   const {
     reset,
@@ -66,10 +67,14 @@ const Sites = () => {
     setOpen(false);
   }
 
-  async function handleCreateRegion(data) {
+  async function handleCreateSite(data) {
+    let request = {
+      id,
+      ...data,
+    };
     try {
-      await newRegion(data).unwrap();
-      toast.success("user updated");
+      await newSite(request).unwrap();
+      toast.success("Site created");
       closeActions();
       reset();
       refetch();
@@ -81,15 +86,15 @@ const Sites = () => {
   return (
     <FlexGrid fullWidth className="page">
       <PageHeader
-        title="Regions"
-        description="Manage and update all available regions"
+        title={`Sites for ${name} region`}
+        description="Manage and update all available sites"
         renderIcon={<Location size={42} />}
       />
       <Spacer h={7} />
       {isLoading || isFetching ? (
         <DataTableSkeleton columnCount={10} />
       ) : (
-        <DataTable rows={rows} headers={REGIONS_TABLE_HEADERS} radio>
+        <DataTable rows={rows} headers={SITES_TABLE_HEADERS} radio>
           {({
             rows,
             headers,
@@ -153,18 +158,16 @@ const Sites = () => {
                       onClick={() => refetch()}
                       renderIcon={Renew}
                       iconDescription="refresh"
-                    >
-                      Add region
-                    </Button>
+                    />
                     <Button
                       tabIndex={
                         batchActionProps.shouldShowBatchActions ? -1 : 0
                       }
                       onClick={() => setOpen(true)}
                       renderIcon={Add}
-                      iconDescription="add region"
+                      iconDescription="add site"
                     >
-                      Add region
+                      Add site
                     </Button>
                   </TableToolbarContent>
                 </TableToolbar>
@@ -202,7 +205,7 @@ const Sites = () => {
                         textAlign: "center",
                       }}
                     >
-                      No available regions
+                      No available sites
                     </h4>
                     <Spacer h={5} />
                   </Fragment>
@@ -213,23 +216,23 @@ const Sites = () => {
         </DataTable>
       )}
       <Spacer h={7} />
-      {rows.length && (
+      {rows.length > 0 && (
         <Pagination pageSizes={[10, 20, 30, 40, 50]} totalItems={rows.length} />
       )}
       <ComposedModal open={open}>
         <ModalHeader
-          title="Add region"
-          label="Region management"
+          title="Add site"
+          label="Site management"
           buttonOnClick={() => closeActions()}
         />
-        <Form onSubmit={handleSubmit(handleCreateRegion)}>
-          <ModalBody aria-label="create new regions">
+        <Form onSubmit={handleSubmit(handleCreateSite)}>
+          <ModalBody aria-label="create new sites">
             <Stack gap={7}>
-              <p>Create a new region</p>
+              <p>Create a new site</p>
               <TextInput
                 id="name"
-                labelText="Region"
-                {...register("name", { required: "Please enter a region" })}
+                labelText="site"
+                {...register("name", { required: "Please enter a site" })}
                 invalid={errors.name ? true : false}
                 invalidText={errors.name?.message}
               />

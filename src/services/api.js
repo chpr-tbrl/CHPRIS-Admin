@@ -50,6 +50,19 @@ export const API = createApi({
         body: data,
       }),
     }),
+    getSites: builder.query({
+      query: (id) => ({
+        url: `/admin/regions/${id}/sites`,
+        method: "GET",
+      }),
+    }),
+    newSite: builder.mutation({
+      query: (data) => ({
+        url: `/admin/regions/${data.id}/sites`,
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 // Export hooks for usage in functional components, which are
@@ -61,4 +74,6 @@ export const {
   useUpdateUserMutation,
   useGetRegionsQuery,
   useNewRegionMutation,
+  useGetSitesQuery,
+  useNewSiteMutation,
 } = API;

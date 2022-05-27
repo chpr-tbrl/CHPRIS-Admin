@@ -49,3 +49,14 @@ export const REGIONS_TABLE_HEADERS = [
     header: "Actions",
   },
 ];
+
+export const SITES_TABLE_HEADERS = [
+  {
+    key: "id",
+    header: "Site ID",
+  },
+  {
+    key: "name",
+    header: "Site name",
+  },
+];
