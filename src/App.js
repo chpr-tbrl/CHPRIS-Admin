@@ -7,6 +7,7 @@ import NotFound from "./pages/not-found";
 import Users from "pages/users";
 import Regions from "pages/regions";
 import Sites from "pages/sites";
+import Account from "pages/account";
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
             }
           >
             <Route index element={<Navigate to="users" />} />
+            <Route path="account" element={<Account />} />
             <Route path="users" element={<Users />} />
             <Route path="regions" element={<Regions />} />
             <Route path="sites/:id/:name" element={<Sites />} />

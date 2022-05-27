@@ -63,6 +63,12 @@ export const API = createApi({
         body: data,
       }),
     }),
+    getProfile: builder.query({
+      query: (id) => ({
+        url: `/users/${id}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 // Export hooks for usage in functional components, which are
@@ -76,4 +82,5 @@ export const {
   useNewRegionMutation,
   useGetSitesQuery,
   useNewSiteMutation,
+  useGetProfileQuery,
 } = API;
