@@ -233,7 +233,7 @@ const Records = () => {
           buttonOnClick={() => closeActions()}
         />
         <Form onSubmit={handleSubmit(handleUserUpdate)}>
-          <ModalBody hasForm hasScrollingContent aria-label="User update modal">
+          <ModalBody hasForm aria-label="User update modal">
             <Stack orientation="horizontal" gap={10}>
               <div>
                 <FormLabel>ID</FormLabel>
