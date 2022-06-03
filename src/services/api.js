@@ -69,6 +69,13 @@ export const API = createApi({
         method: "GET",
       }),
     }),
+    dataExport: builder.mutation({
+      query: ({ uid, region_id, site_id, format, start_date, end_date }) => ({
+        url: `/admin/users/${uid}/regions/${region_id}/sites/${site_id}/exports/${format}?start_date=${start_date}&end_date=${end_date}`,
+        method: "GET",
+        responseHandler: (response) => response.text(), //expecting plain text
+      }),
+    }),
   }),
 });
 // Export hooks for usage in functional components, which are
@@ -83,4 +90,5 @@ export const {
   useGetSitesQuery,
   useNewSiteMutation,
   useGetProfileQuery,
+  useDataExportMutation,
 } = API;

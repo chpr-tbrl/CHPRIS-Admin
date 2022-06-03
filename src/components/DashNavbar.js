@@ -60,6 +60,9 @@ export const DashNavbar = () => {
             <HeaderMenuItem element={NavLink} to="regions">
               Regions
             </HeaderMenuItem>
+            <HeaderMenuItem element={NavLink} to="data-export">
+              Data export
+            </HeaderMenuItem>
           </HeaderNavigation>
           <SideNav
             aria-label="Side navigation"
@@ -73,6 +76,9 @@ export const DashNavbar = () => {
                 </HeaderMenuItem>
                 <HeaderMenuItem element={NavLink} to="regions">
                   Regions
+                </HeaderMenuItem>
+                <HeaderMenuItem element={NavLink} to="data-export">
+                  Data export
                 </HeaderMenuItem>
               </HeaderSideNavItems>
             </SideNavItems>
