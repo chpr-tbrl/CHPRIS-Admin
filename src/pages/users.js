@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from "react";
+import React, { useState, useMemo, Fragment } from "react";
 import { PageHeader, Spacer } from "components";
 import {
   Row,
@@ -13,6 +13,7 @@ import {
   DataTable,
   Pagination,
   Table,
+  Loading,
   TableCell,
   FormLabel,
   TableHead,
@@ -38,14 +39,17 @@ import { Renew, Account, TrashCan, Save } from "@carbon/icons-react";
 import { useGetUsersQuery, useUpdateUserMutation } from "services";
 import {
   ROLES,
-  REGIONS,
   SITES,
+  REGIONS,
   EXPORT_RANGE,
   USER_UPDATE_SCHEMA,
   USERS_TABLE_HEADERS,
 } from "schemas";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useGetRegionsQuery, useGetSitesQuery } from "services";
+
+import { getRegionName, getSiteName, getExportableRangeInMonths } from "utils";
 import toast from "react-hot-toast";
 
 const Users = () => {
@@ -54,11 +58,31 @@ const Users = () => {
   const [selectedRow, setSelectedRow] = useState({});
 
   const {
-    data: rows = [],
+    data: users = [],
     isLoading,
     isFetching,
     refetch,
   } = useGetUsersQuery();
+
+  const { data: regions = [], isLoading: loadingRegions } =
+    useGetRegionsQuery();
+
+  const { data: sites = [], isLoading: loadingSites } = useGetSitesQuery(null, {
+    skip: true,
+    refetchOnMountOrArgChange: true,
+  });
+
+  const rows = useMemo(() => {
+    return users.map((item) => {
+      return {
+        ...item,
+        type_of_export: item.type_of_export ? item.type_of_export : "N/A",
+        region_id: getRegionName(item.region_id, regions),
+        site_id: getSiteName(item.site_id, sites),
+        exportable_range: getExportableRangeInMonths(item.exportable_range),
+      };
+    });
+  }, [users, regions, sites]);
 
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
 
@@ -96,6 +120,7 @@ const Users = () => {
     }
   }
 
+  if (loadingRegions || loadingSites) return <Loading />;
   return (
     <FlexGrid fullWidth className="page">
       <PageHeader
@@ -305,6 +330,7 @@ const Users = () => {
                     id="duration"
                     titleText="Data acquistion duration"
                     label="Select range"
+                    direction="top"
                     items={EXPORT_RANGE}
                     itemToString={(item) => item.text}
                     invalid={errors.exportable_range ? true : false}
