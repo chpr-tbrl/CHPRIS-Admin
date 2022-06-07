@@ -36,27 +36,36 @@ import {
 } from "@carbon/react";
 
 import { Renew, Account, TrashCan, Save } from "@carbon/icons-react";
-import { useGetUsersQuery, useUpdateUserMutation } from "services";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import {
+  useGetRegionsQuery,
+  useGetSitesQuery,
+  useGetUsersQuery,
+  useUpdateUserMutation,
+} from "services";
+import {
+  getRegionName,
+  getSiteName,
+  getUserType,
+  getExportTypes,
+  getExportRangeInMonths,
+} from "utils";
 import {
   ROLES,
-  SITES,
-  REGIONS,
   EXPORT_RANGE,
   USER_UPDATE_SCHEMA,
   USERS_TABLE_HEADERS,
 } from "schemas";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useGetRegionsQuery, useGetSitesQuery } from "services";
-
-import { getRegionName, getSiteName, getExportableRangeInMonths } from "utils";
+import { authSelector } from "features";
+import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 
 const Users = () => {
+  const auth = useSelector(authSelector);
   const [open, setOpen] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [selectedRow, setSelectedRow] = useState({});
-
   const {
     data: users = [],
     isLoading,
@@ -73,27 +82,32 @@ const Users = () => {
   });
 
   const rows = useMemo(() => {
-    return users.map((item) => {
-      return {
-        ...item,
-        type_of_export: item.type_of_export ? item.type_of_export : "N/A",
-        region_id: getRegionName(item.region_id, regions),
-        site_id: getSiteName(item.site_id, sites),
-        exportable_range: getExportableRangeInMonths(item.exportable_range),
-      };
-    });
-  }, [users, regions, sites]);
+    return users
+      .filter((user) => user.id === auth.uid)
+      .map((item) => {
+        return {
+          ...item,
+          export_types: getExportTypes(item.permitted_export_types),
+          region: getRegionName(item.region_id, regions),
+          site: getSiteName(item.site_id, sites),
+          type: getUserType(item.account_type),
+          export_range: getExportRangeInMonths(item.permitted_export_range),
+        };
+      });
+  }, [users, regions, sites, auth]);
 
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
 
   const {
     reset,
     setValue,
+    register,
     handleSubmit,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(USER_UPDATE_SCHEMA),
   });
+  console.log("🚀 ~ file: users.js ~ line 95 ~ Users ~ errors", errors);
 
   function handleRowSelection(row) {
     setShowActions(true);
@@ -110,6 +124,10 @@ const Users = () => {
   }
 
   async function handleUserUpdate(data) {
+    console.log(
+      "🚀 ~ file: users.js ~ line 110 ~ handleUserUpdate ~ data",
+      data
+    );
     try {
       await updateUser(data).unwrap();
       toast.success("user updated");
@@ -163,9 +181,9 @@ const Users = () => {
                         batchActionProps.shouldShowBatchActions ? 0 : -1
                       }
                       renderIcon={TrashCan}
-                      onClick={() => alert("delete acton")}
+                      onClick={() => alert("deactivate action")}
                     >
-                      Delete
+                      Deactivate
                     </TableBatchAction>
                     <TableBatchAction
                       tabIndex={
@@ -248,10 +266,10 @@ const Users = () => {
         </DataTable>
       )}
       <Spacer h={7} />
-      {rows.length && (
+      {rows.length > 0 && (
         <Pagination pageSizes={[10, 20, 30, 40, 50]} totalItems={rows.length} />
       )}
-      <ComposedModal open={open}>
+      <ComposedModal open={open} preventCloseOnClickOutside>
         <ModalHeader
           title="Update User"
           label="User management"
@@ -276,12 +294,11 @@ const Users = () => {
                 titleText="Role"
                 label="Select role"
                 items={ROLES}
-                itemToString={(item) => item.text}
-                invalid={errors.type_of_user ? true : false}
-                invalidText={errors.type_of_user?.message}
-                initialSelectedItem={selectedRow?.type_of_user}
+                itemToString={(item) => item.name}
+                invalid={errors.account_type ? true : false}
+                invalidText={errors.account_type?.message}
                 onChange={(evt) =>
-                  setValue("type_of_user", evt.selectedItem.id, {
+                  setValue("account_type", evt.selectedItem.id, {
                     shouldValidate: true,
                   })
                 }
@@ -293,11 +310,10 @@ const Users = () => {
                     id="region"
                     titleText="Region"
                     label="Select region"
-                    items={REGIONS}
-                    itemToString={(item) => item.text}
+                    items={regions}
+                    itemToString={(item) => item.name}
                     invalid={errors.region_id ? true : false}
                     invalidText={errors.region_id?.message}
-                    initialSelectedItem={selectedRow?.region_id}
                     onChange={(evt) =>
                       setValue("region_id", evt.selectedItem.id, {
                         shouldValidate: true,
@@ -310,11 +326,10 @@ const Users = () => {
                     id="site"
                     titleText="Site"
                     label="Select site"
-                    items={SITES}
-                    itemToString={(item) => item.text}
+                    items={sites}
+                    itemToString={(item) => item.name}
                     invalid={errors.site_id ? true : false}
                     invalidText={errors.site_id?.message}
-                    initialSelectedItem={selectedRow?.site_id}
                     onChange={(evt) =>
                       setValue("site_id", evt.selectedItem.id, {
                         shouldValidate: true,
@@ -332,12 +347,11 @@ const Users = () => {
                     label="Select range"
                     direction="top"
                     items={EXPORT_RANGE}
-                    itemToString={(item) => item.text}
-                    invalid={errors.exportable_range ? true : false}
-                    invalidText={errors.exportable_range?.message}
-                    initialSelectedItem={selectedRow?.exportable_range}
+                    itemToString={(item) => item.name}
+                    invalid={errors.permitted_export_range ? true : false}
+                    invalidText={errors.permitted_export_range?.message}
                     onChange={(evt) =>
-                      setValue("exportable_range", evt.selectedItem.id, {
+                      setValue("permitted_export_range", evt.selectedItem.id, {
                         shouldValidate: true,
                       })
                     }
@@ -347,22 +361,15 @@ const Users = () => {
                   <FormGroup legendText="Export permission">
                     <Checkbox
                       labelText="CSV"
-                      id="export-type-csv"
-                      onChange={() =>
-                        setValue("type_of_export", "csv", {
-                          shouldValidate: true,
-                        })
-                      }
+                      value="csv"
+                      id="permitted_export_types.0"
+                      {...register("permitted_export_types.0")}
                     />
                     <Checkbox
                       labelText="PDF"
                       value="pdf"
-                      id="export-type-pdf"
-                      onChange={() =>
-                        setValue("type_of_export", "pdf", {
-                          shouldValidate: true,
-                        })
-                      }
+                      id="permitted_export_types.1"
+                      {...register("permitted_export_types.1")}
                     />
                   </FormGroup>
                 </Column>

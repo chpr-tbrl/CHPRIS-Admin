@@ -10,28 +10,28 @@ export const USERS_TABLE_HEADERS = [
     header: "Name",
   },
   {
-    key: "type_of_user",
-    header: "Type",
+    key: "type",
+    header: "Account type",
   },
   {
-    key: "region_id",
-    header: "Region",
+    key: "email",
+    header: "Email",
   },
-  // {
-  //   key: "site_id",
-  //   header: "Site",
-  // },
   {
-    key: "type_of_export",
+    key: "phone_number",
+    header: "Phone number",
+  },
+  {
+    key: "export_types",
     header: "Export Type(s)",
   },
   {
-    key: "exportable_range",
+    key: "export_range",
     header: "Export duration (months)",
   },
   {
-    key: "state",
-    header: "State",
+    key: "account_status",
+    header: "Status",
   },
 ];
 

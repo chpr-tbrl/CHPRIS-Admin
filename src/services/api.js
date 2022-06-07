@@ -39,7 +39,7 @@ export const API = createApi({
     }),
     getRegions: builder.query({
       query: () => ({
-        url: "/admin/regions",
+        url: "/regions",
         method: "GET",
       }),
     }),
@@ -52,7 +52,7 @@ export const API = createApi({
     }),
     getSites: builder.query({
       query: (id) => ({
-        url: `/admin/regions/${id}/sites`,
+        url: `/regions/${id}/sites`,
         method: "GET",
       }),
     }),

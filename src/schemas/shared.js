@@ -3,83 +3,87 @@
 export const ROLES = [
   {
     id: "admin",
-    text: "Admin",
+    name: "Admin",
   },
   {
     id: "data_collector",
-    text: "Data collector",
+    name: "Data collector",
+  },
+  {
+    id: "super_admin",
+    name: "Super admin",
   },
 ];
 
 export const REGIONS = [
   {
     id: 1,
-    text: "Northwest",
+    name: "Northwest",
   },
   {
     id: 2,
-    text: "Southwest",
+    name: "Southwest",
   },
   {
     id: 3,
-    text: "West",
+    name: "West",
   },
   {
     id: 4,
-    text: "Center",
+    name: "Center",
   },
   {
     id: 5,
-    text: "Adamawa",
+    name: "Adamawa",
   },
   {
     id: 6,
-    text: "South",
+    name: "South",
   },
   {
     id: 7,
-    text: "Far North",
+    name: "Far North",
   },
   {
     id: 8,
-    text: "North",
+    name: "North",
   },
   {
     id: 9,
-    text: "Littoral",
+    name: "Littoral",
   },
   {
     id: 6,
-    text: "East",
+    name: "East",
   },
 ];
 
 export const SITES = [
   {
     id: 1,
-    text: "Regional Hospital",
+    name: "Regional Hospital",
   },
   {
     id: 2,
-    text: "Afkanerd",
+    name: "Afkanerd",
   },
 ];
 
 export const EXPORT_RANGE = [
   {
     id: 1,
-    text: "1 month",
+    name: "1 month",
   },
   {
     id: 2,
-    text: "2 months",
+    name: "2 months",
   },
   {
     id: 6,
-    text: "6 months",
+    name: "6 months",
   },
   {
     id: 12,
-    text: "12 months",
+    name: "12 months",
   },
 ];
