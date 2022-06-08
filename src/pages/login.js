@@ -31,15 +31,21 @@ const Login = () => {
     resolver: yupResolver(LOGIN_SCHEMA),
   });
 
+  function checkAuth({ account_type, account_status }) {
+    return (
+      AUTHORIZED_ROLES.includes(account_type) && account_status === "approved"
+    );
+  }
+
   async function handleLogin(data) {
     try {
-      const response = await login(data).unwrap();
-      if (!AUTHORIZED_ROLES.includes(response.account_type)) {
+      const user = await login(data).unwrap();
+      if (!checkAuth(user)) {
         toast.error("Forbidden, you  are not authorized");
         return;
       }
       toast.success("login successful");
-      dispatch(saveAuth(response));
+      dispatch(saveAuth(user));
       navigate("/dashboard");
     } catch (error) {
       // we handle errors with middleware
