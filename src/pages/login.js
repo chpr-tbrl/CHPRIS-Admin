@@ -1,4 +1,12 @@
 import React from "react";
+import toast from "react-hot-toast";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useNavigate } from "react-router-dom";
+import { LOGIN_SCHEMA, AUTHORIZED_ROLES } from "schemas";
+import { useLoginMutation } from "services";
+import { useDispatch } from "react-redux";
+import { saveAuth } from "features";
 import {
   Grid,
   Form,
@@ -9,15 +17,10 @@ import {
   PasswordInput,
   InlineLoading,
 } from "@carbon/react";
-import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { LOGIN_SCHEMA } from "schemas";
-import { useLoginMutation } from "services";
-import toast from "react-hot-toast";
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [login, { isLoading }] = useLoginMutation();
 
   const {
@@ -30,8 +33,13 @@ const Login = () => {
 
   async function handleLogin(data) {
     try {
-      await login(data).unwrap();
+      const response = await login(data).unwrap();
+      if (!AUTHORIZED_ROLES.includes(response.account_type)) {
+        toast.error("Forbidden, you  are not authorized");
+        return;
+      }
       toast.success("login successful");
+      dispatch(saveAuth(response));
       navigate("/dashboard");
     } catch (error) {
       // we handle errors with middleware

@@ -87,3 +87,5 @@ export const EXPORT_RANGE = [
     name: "12 months",
   },
 ];
+
+export const AUTHORIZED_ROLES = ["super_admin", "admin"];

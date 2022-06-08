@@ -8,6 +8,7 @@ export const API = createApi({
     headers: {
       "content-type": "application/json",
     },
+    credentials: "include",
   }),
   endpoints: (builder) => ({
     login: builder.mutation({
