@@ -9,6 +9,7 @@ import Regions from "pages/regions";
 import Sites from "pages/sites";
 import Account from "pages/account";
 import DataExport from "pages/data-export";
+import PendingUsers from "pages/pending-users";
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
             <Route path="account" element={<Account />} />
             <Route path="data-export" element={<DataExport />} />
             <Route path="users" element={<Users />} />
+            <Route path="pending" element={<PendingUsers />} />
             <Route path="regions" element={<Regions />} />
             <Route path="sites/:id/:name" element={<Sites />} />
           </Route>

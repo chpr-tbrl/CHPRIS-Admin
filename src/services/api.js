@@ -32,10 +32,18 @@ export const API = createApi({
         body: data,
       }),
     }),
+    updateUserStatus: builder.mutation({
+      query: ({ id, account_status }) => ({
+        url: `/admin/users/${id}`,
+        method: "POST",
+        body: { account_status },
+      }),
+    }),
     getUsers: builder.query({
-      query: () => ({
+      query: (params) => ({
         url: "/admin/users",
         method: "GET",
+        params,
       }),
     }),
     getRegions: builder.query({
@@ -94,4 +102,5 @@ export const {
   useNewSiteMutation,
   useGetProfileQuery,
   useDataExportMutation,
+  useUpdateUserStatusMutation,
 } = API;

@@ -57,6 +57,9 @@ export const DashNavbar = () => {
             <HeaderMenuItem element={NavLink} to="users">
               Users
             </HeaderMenuItem>
+            <HeaderMenuItem element={NavLink} to="pending">
+              Pending
+            </HeaderMenuItem>
             <HeaderMenuItem element={NavLink} to="regions">
               Regions
             </HeaderMenuItem>
@@ -74,6 +77,9 @@ export const DashNavbar = () => {
                 <HeaderMenuItem element={NavLink} to="users">
                   Users
                 </HeaderMenuItem>
+                <HeaderMenuItem element={NavLink} to="pending">
+                  Pending
+                </HeaderMenuItem>
                 <HeaderMenuItem element={NavLink} to="regions">
                   Regions
                 </HeaderMenuItem>
@@ -83,7 +89,6 @@ export const DashNavbar = () => {
               </HeaderSideNavItems>
             </SideNavItems>
           </SideNav>
-
           <HeaderGlobalBar>
             <HeaderGlobalAction aria-label="about platform">
               <Help size={20} />
@@ -96,7 +101,6 @@ export const DashNavbar = () => {
               <UserAvatar size={20} />
             </HeaderGlobalAction>
           </HeaderGlobalBar>
-
           <HeaderPanel aria-label="user actions menu" expanded={panelOpen}>
             <Switcher aria-label="Switcher Container">
               <SwitcherItem
