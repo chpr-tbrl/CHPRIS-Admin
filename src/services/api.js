@@ -71,10 +71,12 @@ export const API = createApi({
       }),
     }),
     dataExport: builder.mutation({
-      query: ({ uid, region_id, site_id, format, start_date, end_date }) => ({
-        url: `/admin/users/${uid}/regions/${region_id}/sites/${site_id}/exports/${format}?start_date=${start_date}&end_date=${end_date}`,
+      query: ({ region_id, site_id, format, start_date, end_date }) => ({
+        url: `/regions/${region_id}/sites/${site_id}/exports/${format}?start_date=${start_date}&end_date=${end_date}`,
         method: "GET",
-        responseHandler: (response) => response.text(), //expecting plain text
+        responseHandler: (response) => {
+          return response.status === 200 ? response.text() : response.json();
+        },
       }),
     }),
   }),
