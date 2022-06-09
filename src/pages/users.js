@@ -83,7 +83,7 @@ const Users = () => {
 
   const rows = useMemo(() => {
     return users
-      .filter((user) => user.id === auth.uid)
+      .filter((user) => user.id !== auth.uid)
       .map((item) => {
         return {
           ...item,
@@ -107,7 +107,6 @@ const Users = () => {
   } = useForm({
     resolver: yupResolver(USER_UPDATE_SCHEMA),
   });
-  console.log("🚀 ~ file: users.js ~ line 95 ~ Users ~ errors", errors);
 
   function handleRowSelection(row) {
     setShowActions(true);
@@ -124,10 +123,6 @@ const Users = () => {
   }
 
   async function handleUserUpdate(data) {
-    console.log(
-      "🚀 ~ file: users.js ~ line 110 ~ handleUserUpdate ~ data",
-      data
-    );
     try {
       await updateUser(data).unwrap();
       toast.success("user updated");
