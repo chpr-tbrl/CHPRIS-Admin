@@ -1,7 +1,6 @@
-import React, { useState, useMemo, Fragment } from "react";
+import React, { useState, createRef, useMemo, Fragment } from "react";
 import { PageHeader, Spacer } from "components";
 import {
-  Row,
   Form,
   Stack,
   Button,
@@ -28,10 +27,8 @@ import {
   TableToolbarContent,
   TableBatchActions,
   TableToolbarSearch,
-  ModalBody,
   ModalFooter,
-  ComposedModal,
-  ModalHeader,
+  Modal,
   InlineLoading,
 } from "@carbon/react";
 
@@ -55,6 +52,7 @@ import {
 } from "utils";
 import {
   ROLES,
+  SUPER_ADMIN,
   EXPORT_RANGE,
   ACCOUNT_STATUS,
   USERS_TABLE_HEADERS,
@@ -66,6 +64,8 @@ import toast from "react-hot-toast";
 
 const Users = () => {
   const auth = useSelector(authSelector);
+  const updateForm = createRef();
+  console.log("🚀 ~ file: users.js ~ line 68 ~ Users ~ updateForm", updateForm);
   const [open, setOpen] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [selectedRow, setSelectedRow] = useState({});
@@ -74,7 +74,9 @@ const Users = () => {
     isLoading,
     isFetching,
     refetch,
-  } = useGetUsersQuery();
+  } = useGetUsersQuery("", {
+    refetchOnMountOrArgChange: true,
+  });
 
   const { data: regions = [], isLoading: loadingRegions } =
     useGetRegionsQuery();
@@ -86,7 +88,12 @@ const Users = () => {
 
   const rows = useMemo(() => {
     return users
-      .filter((user) => user.id !== auth.uid)
+      .filter(({ id }) => id !== auth.uid)
+      .filter(({ account_type }) => {
+        return (
+          account_type !== SUPER_ADMIN && account_type !== auth.account_type
+        );
+      })
       .map((item) => {
         return {
           ...item,
@@ -260,124 +267,148 @@ const Users = () => {
       )}
 
       {open && (
-        <ComposedModal open={open} preventCloseOnClickOutside>
-          <ModalHeader
-            title="Update User"
-            label="User management"
-            buttonOnClick={() => closeActions()}
-          />
+        <Modal
+          open={open}
+          size="sm"
+          passiveModal
+          modalHeading="Update User"
+          modalLabel="User management"
+          aria-label="User update modal"
+          preventCloseOnClickOutside
+          onRequestClose={() => closeActions()}
+        >
           <Form onSubmit={handleSubmit(handleUserUpdate)}>
-            <ModalBody hasForm aria-label="User update modal">
-              <Stack orientation="horizontal" gap={10}>
-                <div>
-                  <FormLabel>ID</FormLabel>
-                  <p>{selectedRow?.id || "N/A"}</p>
-                </div>
-                <div>
-                  <FormLabel>Patient's name</FormLabel>
-                  <p>{selectedRow?.name || "N/A"}</p>
-                </div>
-              </Stack>
-              <Spacer h={5} />
-              <Stack gap={7}>
-                <Dropdown
-                  id="roles"
-                  titleText="Role"
-                  label="Select role"
-                  items={ROLES}
-                  itemToString={(item) => item.name}
-                  invalid={errors.account_type ? true : false}
-                  invalidText={errors.account_type?.message}
-                  initialSelectedItem={findItemIndex(
-                    selectedRow?.account_type,
-                    ROLES
-                  )}
-                  onChange={(evt) => {
-                    handleSetValue(
-                      "account_type",
-                      evt.selectedItem.id,
-                      setValue
-                    );
-                  }}
-                />
+            <Stack orientation="horizontal" gap={10}>
+              <div>
+                <FormLabel>ID</FormLabel>
+                <p>{selectedRow?.id || "N/A"}</p>
+              </div>
+              <div>
+                <FormLabel>Patient's name</FormLabel>
+                <p>{selectedRow?.name || "N/A"}</p>
+              </div>
+            </Stack>
+            <Spacer h={5} />
+            <Stack gap={7}>
+              <Dropdown
+                id="roles"
+                titleText="Role"
+                label="Select role"
+                items={ROLES}
+                itemToString={(item) => item.name}
+                invalid={errors.account_type ? true : false}
+                invalidText={errors.account_type?.message}
+                initialSelectedItem={findItemIndex(
+                  selectedRow?.account_type,
+                  ROLES
+                )}
+                onChange={(evt) => {
+                  handleSetValue("account_type", evt.selectedItem.id, setValue);
+                }}
+              />
 
-                <Dropdown
-                  id="status"
-                  titleText="Account status"
-                  label="select status"
-                  items={ACCOUNT_STATUS}
-                  itemToString={(item) => item}
-                  invalid={errors.account_type ? true : false}
-                  invalidText={errors.account_type?.message}
-                  initialSelectedItem={findItemIndex(
-                    selectedRow?.account_status,
-                    ACCOUNT_STATUS
-                  )}
-                  onChange={(evt) => {
-                    handleSetValue(
-                      "account_status",
-                      evt.selectedItem,
-                      setValue
-                    );
-                  }}
-                />
+              <Dropdown
+                id="status"
+                titleText="Account status"
+                label="select status"
+                items={ACCOUNT_STATUS}
+                itemToString={(item) => item}
+                invalid={errors.account_type ? true : false}
+                invalidText={errors.account_type?.message}
+                initialSelectedItem={findItemIndex(
+                  selectedRow?.account_status,
+                  ACCOUNT_STATUS
+                )}
+                onChange={(evt) => {
+                  handleSetValue("account_status", evt.selectedItem, setValue);
+                }}
+              />
 
-                <Row>
+              <Dropdown
+                id="duration"
+                titleText="Export range"
+                label="Select range"
+                direction="top"
+                items={EXPORT_RANGE}
+                itemToString={(item) => item.name}
+                invalid={errors.permitted_export_range ? true : false}
+                invalidText={errors.permitted_export_range?.message}
+                initialSelectedItem={findItemIndex(
+                  selectedRow?.permitted_export_range,
+                  EXPORT_RANGE
+                )}
+                onChange={(evt) => {
+                  handleSetValue(
+                    "permitted_export_range",
+                    evt.selectedItem.id,
+                    setValue
+                  );
+                }}
+              />
+
+              {/* <Row>
                   <Column>
-                    <FormGroup legendText="Export permission">
-                      <Checkbox
-                        labelText="Permitted to decrypt data"
-                        id="permitted_decrypted_data"
-                        {...register("permitted_decrypted_data")}
-                      />
-                      <Checkbox
-                        labelText="Permitted to approve accounts"
-                        id="permitted_approve_accounts"
-                        {...register("permitted_approve_accounts")}
-                      />
-                    </FormGroup>
+                    <Dropdown
+                      id="region"
+                      titleText="Region"
+                      label="Select region"
+                      items={regions}
+                      itemToString={(item) => item.name}
+                      invalid={errors.region_id ? true : false}
+                      invalidText={errors.region_id?.message}
+                      onChange={(evt) =>
+                        setValue("region_id", evt.selectedItem.id, {
+                          shouldValidate: true,
+                        })
+                      }
+                    />
                   </Column>
                   <Column>
-                    <FormGroup legendText="Export formats">
-                      <Checkbox
-                        labelText="CSV"
-                        value="csv"
-                        id="permitted_export_types.0"
-                        {...register("permitted_export_types.0")}
-                      />
-                      <Checkbox
-                        labelText="PDF"
-                        value="pdf"
-                        id="permitted_export_types.1"
-                        {...register("permitted_export_types.1")}
-                      />
-                    </FormGroup>
+                    <Dropdown
+                      id="site"
+                      titleText="Site"
+                      label="Select site"
+                      items={sites}
+                      itemToString={(item) => item.name}
+                      invalid={errors.site_id ? true : false}
+                      invalidText={errors.site_id?.message}
+                      onChange={(evt) =>
+                        setValue("site_id", evt.selectedItem.id, {
+                          shouldValidate: true,
+                        })
+                      }
+                    />
                   </Column>
-                </Row>
+                </Row> */}
 
-                <Dropdown
-                  id="duration"
-                  titleText="Data acquistion duration"
-                  label="Select range"
-                  direction="top"
-                  items={EXPORT_RANGE}
-                  itemToString={(item) => item.name}
-                  invalid={errors.permitted_export_range ? true : false}
-                  invalidText={errors.permitted_export_range?.message}
-                  initialSelectedItem={findItemIndex(
-                    selectedRow?.permitted_export_range,
-                    EXPORT_RANGE
-                  )}
-                  onChange={(evt) => {
-                    handleSetValue(
-                      "permitted_export_range",
-                      evt.selectedItem.id,
-                      setValue
-                    );
-                  }}
+              <FormGroup legendText="Export permission">
+                <Checkbox
+                  labelText="Can see encrypted data"
+                  id="permitted_decrypted_data"
+                  {...register("permitted_decrypted_data")}
                 />
-              </Stack>
-            </ModalBody>
+                <Checkbox
+                  labelText="Can approve accounts"
+                  id="permitted_approve_accounts"
+                  {...register("permitted_approve_accounts")}
+                />
+              </FormGroup>
+              <FormGroup legendText="Export formats">
+                <Checkbox
+                  labelText="CSV"
+                  value="csv"
+                  id="permitted_export_types.0"
+                  {...register("permitted_export_types.0")}
+                />
+                <Checkbox
+                  labelText="PDF"
+                  value="pdf"
+                  id="permitted_export_types.1"
+                  {...register("permitted_export_types.1")}
+                />
+              </FormGroup>
+            </Stack>
+            <Spacer h={5} />
 
             <ModalFooter>
               <Button
@@ -400,7 +431,7 @@ const Users = () => {
               )}
             </ModalFooter>
           </Form>
-        </ComposedModal>
+        </Modal>
       )}
     </FlexGrid>
   );

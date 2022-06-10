@@ -1,4 +1,7 @@
 // shared variables
+export const SUPER_ADMIN = "super_admin";
+export const ADMIN = "admin";
+export const DATA_COLLECTOR = "data_collector";
 
 export const ROLES = [
   {
@@ -8,10 +11,6 @@ export const ROLES = [
   {
     id: "data_collector",
     name: "Data collector",
-  },
-  {
-    id: "super_admin",
-    name: "Super admin",
   },
 ];
 
