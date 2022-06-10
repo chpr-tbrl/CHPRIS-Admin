@@ -15,59 +15,7 @@ export const ROLES = [
   },
 ];
 
-export const REGIONS = [
-  {
-    id: 1,
-    name: "Northwest",
-  },
-  {
-    id: 2,
-    name: "Southwest",
-  },
-  {
-    id: 3,
-    name: "West",
-  },
-  {
-    id: 4,
-    name: "Center",
-  },
-  {
-    id: 5,
-    name: "Adamawa",
-  },
-  {
-    id: 6,
-    name: "South",
-  },
-  {
-    id: 7,
-    name: "Far North",
-  },
-  {
-    id: 8,
-    name: "North",
-  },
-  {
-    id: 9,
-    name: "Littoral",
-  },
-  {
-    id: 6,
-    name: "East",
-  },
-];
-
-export const SITES = [
-  {
-    id: 1,
-    name: "Regional Hospital",
-  },
-  {
-    id: 2,
-    name: "Afkanerd",
-  },
-];
+export const ACCOUNT_STATUS = ["pending", "approved", "suspended"];
 
 export const EXPORT_RANGE = [
   {

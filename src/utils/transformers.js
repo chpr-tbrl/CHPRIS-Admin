@@ -31,8 +31,12 @@ export function getExportTypes(types) {
   return types.length ? types.toString() : "N/A";
 }
 
-export function getInitialSelectedItem(id, items) {
-  let item = items.find((item) => item.id === id);
-  console.log("🚀 ~ file: transformers.js ~ line 36 ~ getInitialSelectedItem ~ item", item)
-  return item
+export function findItemIndex(id, items) {
+  let index;
+  if (typeof id === "string") {
+    index = items.findIndex((item) => item === id);
+    if (index !== -1) return [...items[index]];
+  }
+  index = items.findIndex((item) => item.id === id);
+  if (index !== -1) return items[index];
 }

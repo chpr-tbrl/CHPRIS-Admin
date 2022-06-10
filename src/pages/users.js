@@ -35,7 +35,7 @@ import {
   InlineLoading,
 } from "@carbon/react";
 
-import { Renew, Account, TrashCan, Save } from "@carbon/icons-react";
+import { Renew, Account, UserData } from "@carbon/icons-react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
@@ -45,17 +45,20 @@ import {
   useUpdateUserMutation,
 } from "services";
 import {
+  findItemIndex,
   getRegionName,
   getSiteName,
   getUserType,
   getExportTypes,
+  handleSetValue,
   getExportRangeInMonths,
 } from "utils";
 import {
   ROLES,
   EXPORT_RANGE,
-  USER_UPDATE_SCHEMA,
+  ACCOUNT_STATUS,
   USERS_TABLE_HEADERS,
+  USER_PERMISSION_UPDATE_SCHEMA,
 } from "schemas";
 import { authSelector } from "features";
 import { useSelector } from "react-redux";
@@ -105,7 +108,7 @@ const Users = () => {
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(USER_UPDATE_SCHEMA),
+    resolver: yupResolver(USER_PERMISSION_UPDATE_SCHEMA),
   });
 
   function handleRowSelection(row) {
@@ -175,16 +178,7 @@ const Users = () => {
                       tabIndex={
                         batchActionProps.shouldShowBatchActions ? 0 : -1
                       }
-                      renderIcon={TrashCan}
-                      onClick={() => alert("deactivate action")}
-                    >
-                      Deactivate
-                    </TableBatchAction>
-                    <TableBatchAction
-                      tabIndex={
-                        batchActionProps.shouldShowBatchActions ? 0 : -1
-                      }
-                      renderIcon={Save}
+                      renderIcon={UserData}
                       onClick={() => setOpen(true)}
                     >
                       Update
@@ -264,136 +258,150 @@ const Users = () => {
       {rows.length > 0 && (
         <Pagination pageSizes={[10, 20, 30, 40, 50]} totalItems={rows.length} />
       )}
-      <ComposedModal open={open} preventCloseOnClickOutside>
-        <ModalHeader
-          title="Update User"
-          label="User management"
-          buttonOnClick={() => closeActions()}
-        />
-        <Form onSubmit={handleSubmit(handleUserUpdate)}>
-          <ModalBody hasForm aria-label="User update modal">
-            <Stack orientation="horizontal" gap={10}>
-              <div>
-                <FormLabel>ID</FormLabel>
-                <p>{selectedRow?.id || "N/A"}</p>
-              </div>
-              <div>
-                <FormLabel>Patient's name</FormLabel>
-                <p>{selectedRow?.name || "N/A"}</p>
-              </div>
-            </Stack>
-            <Spacer h={5} />
-            <Stack gap={7}>
-              <Dropdown
-                id="roles"
-                titleText="Role"
-                label="Select role"
-                items={ROLES}
-                itemToString={(item) => item.name}
-                invalid={errors.account_type ? true : false}
-                invalidText={errors.account_type?.message}
-                onChange={(evt) =>
-                  setValue("account_type", evt.selectedItem.id, {
-                    shouldValidate: true,
-                  })
-                }
-              />
 
-              <Row>
-                <Column>
-                  <Dropdown
-                    id="region"
-                    titleText="Region"
-                    label="Select region"
-                    items={regions}
-                    itemToString={(item) => item.name}
-                    invalid={errors.region_id ? true : false}
-                    invalidText={errors.region_id?.message}
-                    onChange={(evt) =>
-                      setValue("region_id", evt.selectedItem.id, {
-                        shouldValidate: true,
-                      })
-                    }
-                  />
-                </Column>
-                <Column>
-                  <Dropdown
-                    id="site"
-                    titleText="Site"
-                    label="Select site"
-                    items={sites}
-                    itemToString={(item) => item.name}
-                    invalid={errors.site_id ? true : false}
-                    invalidText={errors.site_id?.message}
-                    onChange={(evt) =>
-                      setValue("site_id", evt.selectedItem.id, {
-                        shouldValidate: true,
-                      })
-                    }
-                  />
-                </Column>
-              </Row>
-
-              <Row>
-                <Column>
-                  <Dropdown
-                    id="duration"
-                    titleText="Data acquistion duration"
-                    label="Select range"
-                    direction="top"
-                    items={EXPORT_RANGE}
-                    itemToString={(item) => item.name}
-                    invalid={errors.permitted_export_range ? true : false}
-                    invalidText={errors.permitted_export_range?.message}
-                    onChange={(evt) =>
-                      setValue("permitted_export_range", evt.selectedItem.id, {
-                        shouldValidate: true,
-                      })
-                    }
-                  />
-                </Column>
-                <Column>
-                  <FormGroup legendText="Export permission">
-                    <Checkbox
-                      labelText="CSV"
-                      value="csv"
-                      id="permitted_export_types.0"
-                      {...register("permitted_export_types.0")}
-                    />
-                    <Checkbox
-                      labelText="PDF"
-                      value="pdf"
-                      id="permitted_export_types.1"
-                      {...register("permitted_export_types.1")}
-                    />
-                  </FormGroup>
-                </Column>
-              </Row>
-            </Stack>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button
-              kind="secondary"
-              type="button"
-              onClick={() => closeActions()}
-            >
-              Cancel
-            </Button>
-            {!isUpdating ? (
-              <Button type="submit">Save</Button>
-            ) : (
-              <Column>
-                <InlineLoading
-                  status="active"
-                  iconDescription="Active loading indicator"
-                  description="processing ..."
+      {open && (
+        <ComposedModal open={open} preventCloseOnClickOutside>
+          <ModalHeader
+            title="Update User"
+            label="User management"
+            buttonOnClick={() => closeActions()}
+          />
+          <Form onSubmit={handleSubmit(handleUserUpdate)}>
+            <ModalBody hasForm aria-label="User update modal">
+              <Stack orientation="horizontal" gap={10}>
+                <div>
+                  <FormLabel>ID</FormLabel>
+                  <p>{selectedRow?.id || "N/A"}</p>
+                </div>
+                <div>
+                  <FormLabel>Patient's name</FormLabel>
+                  <p>{selectedRow?.name || "N/A"}</p>
+                </div>
+              </Stack>
+              <Spacer h={5} />
+              <Stack gap={7}>
+                <Dropdown
+                  id="roles"
+                  titleText="Role"
+                  label="Select role"
+                  items={ROLES}
+                  itemToString={(item) => item.name}
+                  invalid={errors.account_type ? true : false}
+                  invalidText={errors.account_type?.message}
+                  initialSelectedItem={findItemIndex(
+                    selectedRow?.account_type,
+                    ROLES
+                  )}
+                  onChange={(evt) => {
+                    handleSetValue(
+                      "account_type",
+                      evt.selectedItem.id,
+                      setValue
+                    );
+                  }}
                 />
-              </Column>
-            )}
-          </ModalFooter>
-        </Form>
-      </ComposedModal>
+
+                <Dropdown
+                  id="status"
+                  titleText="Account status"
+                  label="select status"
+                  items={ACCOUNT_STATUS}
+                  itemToString={(item) => item}
+                  invalid={errors.account_type ? true : false}
+                  invalidText={errors.account_type?.message}
+                  initialSelectedItem={findItemIndex(
+                    selectedRow?.account_status,
+                    ACCOUNT_STATUS
+                  )}
+                  onChange={(evt) => {
+                    handleSetValue(
+                      "account_status",
+                      evt.selectedItem,
+                      setValue
+                    );
+                  }}
+                />
+
+                <Row>
+                  <Column>
+                    <FormGroup legendText="Export permission">
+                      <Checkbox
+                        labelText="Permitted to decrypt data"
+                        id="permitted_decrypted_data"
+                        {...register("permitted_decrypted_data")}
+                      />
+                      <Checkbox
+                        labelText="Permitted to approve accounts"
+                        id="permitted_approve_accounts"
+                        {...register("permitted_approve_accounts")}
+                      />
+                    </FormGroup>
+                  </Column>
+                  <Column>
+                    <FormGroup legendText="Export formats">
+                      <Checkbox
+                        labelText="CSV"
+                        value="csv"
+                        id="permitted_export_types.0"
+                        {...register("permitted_export_types.0")}
+                      />
+                      <Checkbox
+                        labelText="PDF"
+                        value="pdf"
+                        id="permitted_export_types.1"
+                        {...register("permitted_export_types.1")}
+                      />
+                    </FormGroup>
+                  </Column>
+                </Row>
+
+                <Dropdown
+                  id="duration"
+                  titleText="Data acquistion duration"
+                  label="Select range"
+                  direction="top"
+                  items={EXPORT_RANGE}
+                  itemToString={(item) => item.name}
+                  invalid={errors.permitted_export_range ? true : false}
+                  invalidText={errors.permitted_export_range?.message}
+                  initialSelectedItem={findItemIndex(
+                    selectedRow?.permitted_export_range,
+                    EXPORT_RANGE
+                  )}
+                  onChange={(evt) => {
+                    handleSetValue(
+                      "permitted_export_range",
+                      evt.selectedItem.id,
+                      setValue
+                    );
+                  }}
+                />
+              </Stack>
+            </ModalBody>
+
+            <ModalFooter>
+              <Button
+                kind="secondary"
+                type="button"
+                onClick={() => closeActions()}
+              >
+                Cancel
+              </Button>
+              {!isUpdating ? (
+                <Button type="submit">Save</Button>
+              ) : (
+                <Column>
+                  <InlineLoading
+                    status="active"
+                    iconDescription="Active loading indicator"
+                    description="processing ..."
+                  />
+                </Column>
+              )}
+            </ModalFooter>
+          </Form>
+        </ComposedModal>
+      )}
     </FlexGrid>
   );
 };
