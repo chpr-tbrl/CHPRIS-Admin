@@ -8,7 +8,6 @@ import Users from "pages/users";
 import Regions from "pages/regions";
 import Sites from "pages/sites";
 import Account from "pages/account";
-import DataExport from "pages/data-export";
 import PendingUsers from "pages/pending-users";
 
 function App() {
@@ -39,7 +38,6 @@ function App() {
           >
             <Route index element={<Navigate to="users" />} />
             <Route path="account" element={<Account />} />
-            <Route path="data-export" element={<DataExport />} />
             <Route path="users" element={<Users />} />
             <Route path="pending" element={<PendingUsers />} />
             <Route path="regions" element={<Regions />} />
