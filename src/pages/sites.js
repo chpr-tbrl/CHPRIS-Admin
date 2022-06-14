@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from "react";
+import React, { useState, useMemo, Fragment } from "react";
 import { PageHeader, Spacer } from "components";
 import {
   Form,
@@ -18,10 +18,7 @@ import {
   DataTableSkeleton,
   TableHeader,
   TableContainer,
-  TableBatchAction,
-  TableSelectRow,
   TableToolbarContent,
-  TableBatchActions,
   TableToolbarSearch,
   ModalBody,
   ModalFooter,
@@ -30,7 +27,7 @@ import {
   InlineLoading,
 } from "@carbon/react";
 
-import { Renew, Location, TrashCan, Save, Add } from "@carbon/icons-react";
+import { Renew, Location, Add } from "@carbon/icons-react";
 import { useGetSitesQuery, useNewSiteMutation } from "services";
 import { SITES_TABLE_HEADERS } from "schemas";
 import { useParams } from "react-router-dom";
@@ -39,18 +36,20 @@ import toast from "react-hot-toast";
 
 const Sites = () => {
   const [open, setOpen] = useState(false);
-  const [showActions, setShowActions] = useState(false);
-  const [selectedRow, setSelectedRow] = useState({});
 
   //region id and name
   const { id, name } = useParams();
 
-  const {
-    data: rows = [],
-    isLoading,
-    isFetching,
-    refetch,
-  } = useGetSitesQuery(id);
+  const { data = [], isLoading, isFetching, refetch } = useGetSitesQuery(id);
+
+  const rows = useMemo(() => {
+    return data.map((item) => {
+      return {
+        ...item,
+        code: item.site_code,
+      };
+    });
+  }, [data]);
 
   const [newSite, { isLoading: isUpdating }] = useNewSiteMutation();
 
@@ -62,8 +61,6 @@ const Sites = () => {
   } = useForm();
 
   function closeActions() {
-    setShowActions(false);
-    setSelectedRow({});
     setOpen(false);
   }
 
@@ -75,7 +72,6 @@ const Sites = () => {
     try {
       await newSite(request).unwrap();
       toast.success("Site created");
-      closeActions();
       reset();
       refetch();
     } catch (error) {
@@ -101,13 +97,10 @@ const Sites = () => {
             getHeaderProps,
             getRowProps,
             getToolbarProps,
-            getBatchActionProps,
             onInputChange,
             getTableProps,
-            getSelectionProps,
             getTableContainerProps,
           }) => {
-            const batchActionProps = getBatchActionProps();
             return (
               <TableContainer
                 title=""
@@ -115,44 +108,14 @@ const Sites = () => {
                 {...getTableContainerProps()}
               >
                 <TableToolbar {...getToolbarProps()}>
-                  <TableBatchActions
-                    shouldShowBatchActions={showActions}
-                    onCancel={() => closeActions()}
-                    totalSelected={1}
-                  >
-                    <TableBatchAction
-                      tabIndex={
-                        batchActionProps.shouldShowBatchActions ? 0 : -1
-                      }
-                      renderIcon={TrashCan}
-                      onClick={() => alert("delete acton")}
-                    >
-                      Delete
-                    </TableBatchAction>
-                    <TableBatchAction
-                      tabIndex={
-                        batchActionProps.shouldShowBatchActions ? 0 : -1
-                      }
-                      renderIcon={Save}
-                      onClick={() => setOpen(true)}
-                    >
-                      Update
-                    </TableBatchAction>
-                  </TableBatchActions>
-                  <TableToolbarContent
-                    aria-hidden={batchActionProps.shouldShowBatchActions}
-                  >
+                  <TableToolbarContent aria-hidden={false}>
                     <TableToolbarSearch
                       persistent
-                      tabIndex={
-                        batchActionProps.shouldShowBatchActions ? -1 : 0
-                      }
+                      tabIndex={-1}
                       onChange={onInputChange}
                     />
                     <Button
-                      tabIndex={
-                        batchActionProps.shouldShowBatchActions ? -1 : 0
-                      }
+                      tabIndex={-1}
                       kind="ghost"
                       hasIconOnly
                       onClick={() => refetch()}
@@ -160,9 +123,7 @@ const Sites = () => {
                       iconDescription="refresh"
                     />
                     <Button
-                      tabIndex={
-                        batchActionProps.shouldShowBatchActions ? -1 : 0
-                      }
+                      tabIndex={-1}
                       onClick={() => setOpen(true)}
                       renderIcon={Add}
                       iconDescription="add site"
@@ -175,7 +136,6 @@ const Sites = () => {
                   <Table {...getTableProps()}>
                     <TableHead>
                       <TableRow>
-                        <th scope="col" />
                         {headers.map((header, i) => (
                           <TableHeader key={i} {...getHeaderProps({ header })}>
                             {header.header}
@@ -186,10 +146,6 @@ const Sites = () => {
                     <TableBody>
                       {rows.map((row, i) => (
                         <TableRow key={i} {...getRowProps({ row })}>
-                          <TableSelectRow
-                            {...getSelectionProps({ row })}
-                            checked={selectedRow?.id === row.id}
-                          />
                           {row.cells.map((cell) => (
                             <TableCell key={cell.id}>{cell.value}</TableCell>
                           ))}
@@ -219,48 +175,61 @@ const Sites = () => {
       {rows.length > 0 && (
         <Pagination pageSizes={[10, 20, 30, 40, 50]} totalItems={rows.length} />
       )}
-      <ComposedModal open={open}>
-        <ModalHeader
-          title="Add site"
-          label="Site management"
-          buttonOnClick={() => closeActions()}
-        />
-        <Form onSubmit={handleSubmit(handleCreateSite)}>
-          <ModalBody aria-label="create new sites">
-            <Stack gap={7}>
-              <p>Create a new site</p>
-              <TextInput
-                id="name"
-                labelText="site"
-                {...register("name", { required: "Please enter a site" })}
-                invalid={errors.name ? true : false}
-                invalidText={errors.name?.message}
-              />
-            </Stack>
-          </ModalBody>
 
-          <ModalFooter>
-            <Button
-              kind="secondary"
-              type="button"
-              onClick={() => closeActions()}
-            >
-              Cancel
-            </Button>
-            {!isUpdating ? (
-              <Button type="submit">Save</Button>
-            ) : (
-              <Column>
-                <InlineLoading
-                  status="active"
-                  iconDescription="Active loading indicator"
-                  description="processing ..."
+      {open && (
+        <ComposedModal open={open}>
+          <ModalHeader
+            title="Add site"
+            label="Site management"
+            buttonOnClick={() => closeActions()}
+          />
+          <Form onSubmit={handleSubmit(handleCreateSite)}>
+            <ModalBody aria-label="create new sites">
+              <Stack gap={7}>
+                <p>Create a new site</p>
+                <TextInput
+                  id="name"
+                  labelText="Site name"
+                  {...register("name", { required: "Please enter a site" })}
+                  invalid={errors.name ? true : false}
+                  invalidText={errors.name?.message}
                 />
-              </Column>
-            )}
-          </ModalFooter>
-        </Form>
-      </ComposedModal>
+
+                <TextInput
+                  id="site_code"
+                  labelText="Site code"
+                  {...register("site_code", {
+                    required: "Please enter a site code",
+                  })}
+                  invalid={errors.site_code ? true : false}
+                  invalidText={errors.site_code?.message}
+                />
+              </Stack>
+            </ModalBody>
+
+            <ModalFooter>
+              <Button
+                kind="secondary"
+                type="button"
+                onClick={() => closeActions()}
+              >
+                Cancel
+              </Button>
+              {!isUpdating ? (
+                <Button type="submit">Save</Button>
+              ) : (
+                <Column>
+                  <InlineLoading
+                    status="active"
+                    iconDescription="Active loading indicator"
+                    description="processing ..."
+                  />
+                </Column>
+              )}
+            </ModalFooter>
+          </Form>
+        </ComposedModal>
+      )}
     </FlexGrid>
   );
 };

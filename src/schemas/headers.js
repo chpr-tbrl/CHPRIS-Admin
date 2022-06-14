@@ -91,8 +91,8 @@ export const REGIONS_TABLE_HEADERS = [
 
 export const SITES_TABLE_HEADERS = [
   {
-    key: "id",
-    header: "Site ID",
+    key: "code",
+    header: "Site code",
   },
   {
     key: "name",
