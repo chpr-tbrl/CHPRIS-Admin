@@ -1,5 +1,11 @@
 import React, { Fragment } from "react";
-import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Routes,
+  Route,
+  Outlet,
+} from "react-router-dom";
 import { Layout, DashLayout, RequireAuth } from "components";
 import { Toaster } from "react-hot-toast";
 import Login from "pages/login";
@@ -9,6 +15,7 @@ import Regions from "pages/regions";
 import Sites from "pages/sites";
 import Account from "pages/account";
 import PendingUsers from "pages/pending-users";
+import UserSitesUpdate from "pages/user-sites-update";
 
 function App() {
   return (
@@ -38,7 +45,10 @@ function App() {
           >
             <Route index element={<Navigate to="users" />} />
             <Route path="account" element={<Account />} />
-            <Route path="users" element={<Users />} />
+            <Route path="users" element={<Outlet />}>
+              <Route index element={<Users />} />
+              <Route path="sites/:id/:name" element={<UserSitesUpdate />} />
+            </Route>
             <Route path="pending" element={<PendingUsers />} />
             <Route path="regions" element={<Regions />} />
             <Route path="sites/:id/:name" element={<Sites />} />

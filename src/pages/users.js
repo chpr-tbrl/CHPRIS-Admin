@@ -1,4 +1,5 @@
-import React, { useState, createRef, useMemo, Fragment } from "react";
+import React, { useState, useMemo, useRef, Fragment } from "react";
+import toast from "react-hot-toast";
 import { PageHeader, Spacer } from "components";
 import {
   Form,
@@ -18,21 +19,23 @@ import {
   TableHead,
   TableRow,
   TableBody,
+  ComposedModal,
+  ModalBody,
+  ModalHeader,
+  ModalFooter,
   TableToolbar,
-  DataTableSkeleton,
   TableHeader,
   TableContainer,
   TableBatchAction,
   TableSelectRow,
+  DataTableSkeleton,
   TableToolbarContent,
   TableBatchActions,
   TableToolbarSearch,
-  ModalFooter,
-  Modal,
   InlineLoading,
 } from "@carbon/react";
 
-import { Renew, Account, UserData } from "@carbon/icons-react";
+import { Renew, Account, GroupSecurity, Location } from "@carbon/icons-react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
@@ -60,21 +63,22 @@ import {
 } from "schemas";
 import { authSelector } from "features";
 import { useSelector } from "react-redux";
-import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const Users = () => {
   const auth = useSelector(authSelector);
-  const updateForm = createRef();
-  console.log("🚀 ~ file: users.js ~ line 68 ~ Users ~ updateForm", updateForm);
   const [open, setOpen] = useState(false);
+  const submitBtnRef = useRef(null);
+  const navigate = useNavigate();
   const [showActions, setShowActions] = useState(false);
   const [selectedRow, setSelectedRow] = useState({});
+
   const {
     data: users = [],
     isLoading,
     isFetching,
     refetch,
-  } = useGetUsersQuery("", {
+  } = useGetUsersQuery(null, {
     refetchOnMountOrArgChange: true,
   });
 
@@ -185,10 +189,23 @@ const Users = () => {
                       tabIndex={
                         batchActionProps.shouldShowBatchActions ? 0 : -1
                       }
-                      renderIcon={UserData}
+                      renderIcon={Location}
+                      onClick={() =>
+                        navigate(
+                          `sites/${selectedRow?.id}/${selectedRow?.name}`
+                        )
+                      }
+                    >
+                      Update Sites
+                    </TableBatchAction>
+                    <TableBatchAction
+                      tabIndex={
+                        batchActionProps.shouldShowBatchActions ? 0 : -1
+                      }
+                      renderIcon={GroupSecurity}
                       onClick={() => setOpen(true)}
                     >
-                      Update
+                      Update permissions
                     </TableBatchAction>
                   </TableBatchActions>
                   <TableToolbarContent
@@ -267,171 +284,147 @@ const Users = () => {
       )}
 
       {open && (
-        <Modal
-          open={open}
-          size="sm"
-          passiveModal
-          modalHeading="Update User"
-          modalLabel="User management"
-          aria-label="User update modal"
-          preventCloseOnClickOutside
-          onRequestClose={() => closeActions()}
-        >
-          <Form onSubmit={handleSubmit(handleUserUpdate)}>
-            <Stack orientation="horizontal" gap={10}>
-              <div>
-                <FormLabel>ID</FormLabel>
-                <p>{selectedRow?.id || "N/A"}</p>
-              </div>
-              <div>
-                <FormLabel>Patient's name</FormLabel>
-                <p>{selectedRow?.name || "N/A"}</p>
-              </div>
-            </Stack>
-            <Spacer h={5} />
-            <Stack gap={7}>
-              <Dropdown
-                id="roles"
-                titleText="Role"
-                label="Select role"
-                items={ROLES}
-                itemToString={(item) => item.name}
-                invalid={errors.account_type ? true : false}
-                invalidText={errors.account_type?.message}
-                initialSelectedItem={findItemIndex(
-                  selectedRow?.account_type,
-                  ROLES
-                )}
-                onChange={(evt) => {
-                  handleSetValue("account_type", evt.selectedItem.id, setValue);
-                }}
-              />
-
-              <Dropdown
-                id="status"
-                titleText="Account status"
-                label="select status"
-                items={ACCOUNT_STATUS}
-                itemToString={(item) => item}
-                invalid={errors.account_type ? true : false}
-                invalidText={errors.account_type?.message}
-                initialSelectedItem={findItemIndex(
-                  selectedRow?.account_status,
-                  ACCOUNT_STATUS
-                )}
-                onChange={(evt) => {
-                  handleSetValue("account_status", evt.selectedItem, setValue);
-                }}
-              />
-
-              <Dropdown
-                id="duration"
-                titleText="Export range"
-                label="Select range"
-                direction="top"
-                items={EXPORT_RANGE}
-                itemToString={(item) => item.name}
-                invalid={errors.permitted_export_range ? true : false}
-                invalidText={errors.permitted_export_range?.message}
-                initialSelectedItem={findItemIndex(
-                  selectedRow?.permitted_export_range,
-                  EXPORT_RANGE
-                )}
-                onChange={(evt) => {
-                  handleSetValue(
-                    "permitted_export_range",
-                    evt.selectedItem.id,
-                    setValue
-                  );
-                }}
-              />
-
-              {/* <Row>
-                  <Column>
-                    <Dropdown
-                      id="region"
-                      titleText="Region"
-                      label="Select region"
-                      items={regions}
-                      itemToString={(item) => item.name}
-                      invalid={errors.region_id ? true : false}
-                      invalidText={errors.region_id?.message}
-                      onChange={(evt) =>
-                        setValue("region_id", evt.selectedItem.id, {
-                          shouldValidate: true,
-                        })
-                      }
-                    />
-                  </Column>
-                  <Column>
-                    <Dropdown
-                      id="site"
-                      titleText="Site"
-                      label="Select site"
-                      items={sites}
-                      itemToString={(item) => item.name}
-                      invalid={errors.site_id ? true : false}
-                      invalidText={errors.site_id?.message}
-                      onChange={(evt) =>
-                        setValue("site_id", evt.selectedItem.id, {
-                          shouldValidate: true,
-                        })
-                      }
-                    />
-                  </Column>
-                </Row> */}
-
-              <FormGroup legendText="Export permission">
-                <Checkbox
-                  labelText="Can see encrypted data"
-                  id="permitted_decrypted_data"
-                  {...register("permitted_decrypted_data")}
+        <ComposedModal size="sm" open={open} preventCloseOnClickOutside>
+          <ModalHeader
+            title="Update User"
+            label="User management"
+            buttonOnClick={() => closeActions()}
+          />
+          <ModalBody hasForm hasScrollingContent aria-label="User update modal">
+            <Form onSubmit={handleSubmit(handleUserUpdate)}>
+              <Stack orientation="horizontal" gap={10}>
+                <div>
+                  <FormLabel>ID</FormLabel>
+                  <p>{selectedRow?.id || "N/A"}</p>
+                </div>
+                <div>
+                  <FormLabel>Patient's name</FormLabel>
+                  <p>{selectedRow?.name || "N/A"}</p>
+                </div>
+              </Stack>
+              <Spacer h={5} />
+              <Stack gap={7}>
+                <Dropdown
+                  id="roles"
+                  titleText="Role"
+                  label="Select role"
+                  items={ROLES}
+                  itemToString={(item) => item.name}
+                  invalid={errors.account_type ? true : false}
+                  invalidText={errors.account_type?.message}
+                  initialSelectedItem={findItemIndex(
+                    selectedRow?.account_type,
+                    ROLES
+                  )}
+                  onChange={(evt) => {
+                    handleSetValue(
+                      "account_type",
+                      evt.selectedItem.id,
+                      setValue
+                    );
+                  }}
                 />
-                <Checkbox
-                  labelText="Can approve accounts"
-                  id="permitted_approve_accounts"
-                  {...register("permitted_approve_accounts")}
-                />
-              </FormGroup>
-              <FormGroup legendText="Export formats">
-                <Checkbox
-                  labelText="CSV"
-                  value="csv"
-                  id="permitted_export_types.0"
-                  {...register("permitted_export_types.0")}
-                />
-                <Checkbox
-                  labelText="PDF"
-                  value="pdf"
-                  id="permitted_export_types.1"
-                  {...register("permitted_export_types.1")}
-                />
-              </FormGroup>
-            </Stack>
-            <Spacer h={5} />
 
-            <ModalFooter>
-              <Button
-                kind="secondary"
-                type="button"
-                onClick={() => closeActions()}
-              >
-                Cancel
-              </Button>
-              {!isUpdating ? (
-                <Button type="submit">Save</Button>
-              ) : (
-                <Column>
-                  <InlineLoading
-                    status="active"
-                    iconDescription="Active loading indicator"
-                    description="processing ..."
+                <Dropdown
+                  id="status"
+                  titleText="Account status"
+                  label="select status"
+                  items={ACCOUNT_STATUS}
+                  itemToString={(item) => item}
+                  invalid={errors.account_type ? true : false}
+                  invalidText={errors.account_type?.message}
+                  initialSelectedItem={findItemIndex(
+                    selectedRow?.account_status,
+                    ACCOUNT_STATUS
+                  )}
+                  onChange={(evt) => {
+                    handleSetValue(
+                      "account_status",
+                      evt.selectedItem,
+                      setValue
+                    );
+                  }}
+                />
+
+                <Dropdown
+                  id="duration"
+                  titleText="Data acquistion duration"
+                  label="Select range"
+                  items={EXPORT_RANGE}
+                  itemToString={(item) => item.name}
+                  invalid={errors.permitted_export_range ? true : false}
+                  invalidText={errors.permitted_export_range?.message}
+                  initialSelectedItem={findItemIndex(
+                    selectedRow?.permitted_export_range,
+                    EXPORT_RANGE
+                  )}
+                  onChange={(evt) => {
+                    handleSetValue(
+                      "permitted_export_range",
+                      evt.selectedItem.id,
+                      setValue
+                    );
+                  }}
+                />
+
+                <FormGroup legendText="">
+                  <Checkbox
+                    labelText="Can see decrypted data"
+                    id="permitted_decrypted_data"
+                    {...register("permitted_decrypted_data")}
                   />
-                </Column>
-              )}
-            </ModalFooter>
-          </Form>
-        </Modal>
+                  <Checkbox
+                    labelText="Can approve accounts"
+                    id="permitted_approve_accounts"
+                    {...register("permitted_approve_accounts")}
+                  />
+                </FormGroup>
+
+                <FormGroup legendText="Can export data in">
+                  <Checkbox
+                    labelText="CSV"
+                    value="csv"
+                    id="permitted_export_types.0"
+                    {...register("permitted_export_types.0")}
+                  />
+                  <Checkbox
+                    labelText="PDF"
+                    value="pdf"
+                    id="permitted_export_types.1"
+                    {...register("permitted_export_types.1")}
+                  />
+                </FormGroup>
+              </Stack>
+              <button
+                type="submit"
+                ref={submitBtnRef}
+                hidden
+                aria-label="submit"
+              ></button>
+            </Form>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button
+              kind="secondary"
+              type="button"
+              onClick={() => closeActions()}
+            >
+              Cancel
+            </Button>
+            {!isUpdating ? (
+              <Button onClick={() => submitBtnRef.current.click()}>Save</Button>
+            ) : (
+              <Column>
+                <InlineLoading
+                  status="active"
+                  iconDescription="Active loading indicator"
+                  description="processing ..."
+                />
+              </Column>
+            )}
+          </ModalFooter>
+        </ComposedModal>
       )}
     </FlexGrid>
   );

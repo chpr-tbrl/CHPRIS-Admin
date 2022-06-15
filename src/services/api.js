@@ -73,9 +73,23 @@ export const API = createApi({
       }),
     }),
     getProfile: builder.query({
-      query: (id) => ({
-        url: `/users/${id}`,
+      query: () => ({
+        url: "/profile",
         method: "GET",
+      }),
+    }),
+    getUserProfile: builder.query({
+      query: (id) => ({
+        url: `/admin/users/${id}`,
+        method: "GET",
+      }),
+      transformResponse: (response) => response.users_sites,
+    }),
+    addUserSite: builder.mutation({
+      query: ({ id, site }) => ({
+        url: `/admin/users/${id}/sites`,
+        method: "POST",
+        body: site,
       }),
     }),
   }),
@@ -92,5 +106,7 @@ export const {
   useGetSitesQuery,
   useNewSiteMutation,
   useGetProfileQuery,
+  useGetUserProfileQuery,
+  useAddUserSiteMutation,
   useUpdateUserStatusMutation,
 } = API;

@@ -99,3 +99,22 @@ export const SITES_TABLE_HEADERS = [
     header: "Site name",
   },
 ];
+
+export const USER_SITES_UPDATE = [
+  {
+    key: "site_code",
+    header: "Site code",
+  },
+  {
+    key: "name",
+    header: "Site name",
+  },
+  {
+    key: "region",
+    header: "Region name",
+  },
+  {
+    key: "action",
+    header: "Action",
+  },
+];
