@@ -42,7 +42,14 @@ const Regions = () => {
   const [showActions, setShowActions] = useState(false);
   const [selectedRow, setSelectedRow] = useState({});
 
-  const { data = [], isLoading, isFetching, refetch } = useGetRegionsQuery();
+  const {
+    data = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useGetRegionsQuery(null, {
+    refetchOnMountOrArgChange: true,
+  });
 
   const [newRegion, { isLoading: isUpdating }] = useNewRegionMutation();
 

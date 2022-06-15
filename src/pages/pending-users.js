@@ -47,7 +47,9 @@ const PendingUsers = () => {
     isLoading,
     isFetching,
     refetch,
-  } = useGetUsersQuery({ account_status: "pending" });
+  } = useGetUsersQuery({ account_status: "pending" }, null, {
+    refetchOnMountOrArgChange: true,
+  });
 
   const { data: regions = [], isLoading: loadingRegions } =
     useGetRegionsQuery();
@@ -77,23 +79,26 @@ const PendingUsers = () => {
   );
 
   const rows = useMemo(() => {
-    return users
-      .filter((user) => user.id !== auth.uid)
-      .map((item) => {
-        return {
-          ...item,
-          export_types: getExportTypes(item.permitted_export_types),
-          region: getRegionName(item.region_id, regions),
-          site: getSiteName(item.site_id, sites),
-          type: getUserType(item.UserMultiple_type),
-          export_range: getExportRangeInMonths(item.permitted_export_range),
-          action: (
-            <Button kind="ghost" onClick={() => handleUserApproval(item.id)}>
-              approve
-            </Button>
-          ),
-        };
-      });
+    if (users) {
+      return users
+        .filter((user) => user.id !== auth.uid)
+        .map((item) => {
+          return {
+            ...item,
+            export_types: getExportTypes(item.permitted_export_types),
+            region: getRegionName(item.region_id, regions),
+            site: getSiteName(item.site_id, sites),
+            type: getUserType(item.UserMultiple_type),
+            export_range: getExportRangeInMonths(item.permitted_export_range),
+            action: (
+              <Button kind="ghost" onClick={() => handleUserApproval(item.id)}>
+                approve
+              </Button>
+            ),
+          };
+        });
+    }
+    return [];
   }, [users, regions, sites, auth, handleUserApproval]);
 
   if (loadingRegions || loadingSites || isUpdating) return <Loading />;

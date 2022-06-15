@@ -40,7 +40,14 @@ const Sites = () => {
   //region id and name
   const { id, name } = useParams();
 
-  const { data = [], isLoading, isFetching, refetch } = useGetSitesQuery(id);
+  const {
+    data = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useGetSitesQuery(id, {
+    refetchOnMountOrArgChange: true,
+  });
 
   const rows = useMemo(() => {
     return data.map((item) => {
