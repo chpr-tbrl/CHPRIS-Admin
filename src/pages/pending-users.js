@@ -17,6 +17,7 @@ import {
   TableContainer,
   TableToolbarContent,
   TableToolbarSearch,
+  InlineNotification,
 } from "@carbon/react";
 
 import { Renew, UserMultiple } from "@carbon/icons-react";
@@ -38,26 +39,36 @@ import {
 import { PENDING_TABLE_HEADERS } from "schemas";
 import { authSelector } from "features";
 import { useSelector } from "react-redux";
+import { useProfile } from "hooks";
 import toast from "react-hot-toast";
 
 const PendingUsers = () => {
   const auth = useSelector(authSelector);
+  const { account, fetchingProfile } = useProfile(auth.uid);
   const {
     data: users = [],
     isLoading,
     isFetching,
     refetch,
-  } = useGetUsersQuery({ account_status: "pending" }, null, {
-    refetchOnMountOrArgChange: true,
-  });
+  } = useGetUsersQuery(
+    { account_status: "pending" },
+    {
+      refetchOnMountOrArgChange: true,
+    }
+  );
 
-  const { data: regions = [], isLoading: loadingRegions } =
-    useGetRegionsQuery();
+  const { data: regions = [], isFetching: fetchingRegions } =
+    useGetRegionsQuery(null, {
+      refetchOnMountOrArgChange: true,
+    });
 
-  const { data: sites = [], isLoading: loadingSites } = useGetSitesQuery(null, {
-    skip: true,
-    refetchOnMountOrArgChange: true,
-  });
+  const { data: sites = [], isFetching: fetchingSites } = useGetSitesQuery(
+    null,
+    {
+      skip: true,
+      refetchOnMountOrArgChange: true,
+    }
+  );
   const [updateUserStatus, { isLoading: isUpdating }] =
     useUpdateUserStatusMutation();
 
@@ -79,29 +90,28 @@ const PendingUsers = () => {
   );
 
   const rows = useMemo(() => {
-    if (users) {
-      return users
-        .filter((user) => user.id !== auth.uid)
-        .map((item) => {
-          return {
-            ...item,
-            export_types: getExportTypes(item.permitted_export_types),
-            region: getRegionName(item.region_id, regions),
-            site: getSiteName(item.site_id, sites),
-            type: getUserType(item.UserMultiple_type),
-            export_range: getExportRangeInMonths(item.permitted_export_range),
-            action: (
-              <Button kind="ghost" onClick={() => handleUserApproval(item.id)}>
-                approve
-              </Button>
-            ),
-          };
-        });
-    }
-    return [];
+    if (!users) return [];
+    return users
+      .filter((user) => user.id !== auth.uid)
+      .map((item) => {
+        return {
+          ...item,
+          export_types: getExportTypes(item.permitted_export_types),
+          region: getRegionName(item.region_id, regions),
+          site: getSiteName(item.site_id, sites),
+          type: getUserType(item.UserMultiple_type),
+          export_range: getExportRangeInMonths(item.permitted_export_range),
+          action: (
+            <Button kind="ghost" onClick={() => handleUserApproval(item.id)}>
+              approve
+            </Button>
+          ),
+        };
+      });
   }, [users, regions, sites, auth, handleUserApproval]);
 
-  if (loadingRegions || loadingSites || isUpdating) return <Loading />;
+  if (fetchingProfile || fetchingRegions || fetchingSites || isUpdating)
+    return <Loading />;
   return (
     <FlexGrid fullWidth className="page">
       <PageHeader
@@ -110,80 +120,104 @@ const PendingUsers = () => {
         renderIcon={<UserMultiple size={42} />}
       />
       <Spacer h={7} />
-      {isLoading || isFetching ? (
-        <DataTableSkeleton columnCount={10} />
+
+      {!account.permitted_approve_accounts ? (
+        <InlineNotification
+          kind="error"
+          hideCloseButton
+          lowContrast
+          title="Invalid permission"
+          subtitle="Sorry, you do not have the right permission to approve accounts, contact administrator"
+        />
       ) : (
-        <DataTable rows={rows} headers={PENDING_TABLE_HEADERS} radio>
-          {({
-            rows,
-            headers,
-            getHeaderProps,
-            getRowProps,
-            getToolbarProps,
-            onInputChange,
-            getTableProps,
-            getTableContainerProps,
-          }) => {
-            return (
-              <TableContainer
-                title=""
-                description=""
-                {...getTableContainerProps()}
-              >
-                <TableToolbar {...getToolbarProps()}>
-                  <TableToolbarContent>
-                    <TableToolbarSearch persistent onChange={onInputChange} />
-                    <Button
-                      onClick={() => refetch()}
-                      renderIcon={Renew}
-                      iconDescription="refresh"
-                    >
-                      Refresh
-                    </Button>
-                  </TableToolbarContent>
-                </TableToolbar>
-                {rows.length ? (
-                  <Table {...getTableProps()}>
-                    <TableHead>
-                      <TableRow>
-                        {headers.map((header, i) => (
-                          <TableHeader key={i} {...getHeaderProps({ header })}>
-                            {header.header}
-                          </TableHeader>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {rows.map((row, i) => (
-                        <TableRow key={i} {...getRowProps({ row })}>
-                          {row.cells.map((cell) => (
-                            <TableCell key={cell.id}>{cell.value}</TableCell>
+        <Fragment>
+          {isLoading || isFetching ? (
+            <DataTableSkeleton columnCount={10} />
+          ) : (
+            <DataTable rows={rows} headers={PENDING_TABLE_HEADERS} radio>
+              {({
+                rows,
+                headers,
+                getHeaderProps,
+                getRowProps,
+                getToolbarProps,
+                onInputChange,
+                getTableProps,
+                getTableContainerProps,
+              }) => {
+                return (
+                  <TableContainer
+                    title=""
+                    description=""
+                    {...getTableContainerProps()}
+                  >
+                    <TableToolbar {...getToolbarProps()}>
+                      <TableToolbarContent>
+                        <TableToolbarSearch
+                          persistent
+                          onChange={onInputChange}
+                        />
+                        <Button
+                          onClick={() => refetch()}
+                          renderIcon={Renew}
+                          iconDescription="refresh"
+                        >
+                          Refresh
+                        </Button>
+                      </TableToolbarContent>
+                    </TableToolbar>
+                    {rows.length ? (
+                      <Table {...getTableProps()}>
+                        <TableHead>
+                          <TableRow>
+                            {headers.map((header, i) => (
+                              <TableHeader
+                                key={i}
+                                {...getHeaderProps({ header })}
+                              >
+                                {header.header}
+                              </TableHeader>
+                            ))}
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {rows.map((row, i) => (
+                            <TableRow key={i} {...getRowProps({ row })}>
+                              {row.cells.map((cell) => (
+                                <TableCell key={cell.id}>
+                                  {cell.value}
+                                </TableCell>
+                              ))}
+                            </TableRow>
                           ))}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                ) : (
-                  <Fragment>
-                    <Spacer h={5} />
-                    <h4
-                      style={{
-                        textAlign: "center",
-                      }}
-                    >
-                      No pending accounts
-                    </h4>
-                    <Spacer h={5} />
-                  </Fragment>
-                )}
-              </TableContainer>
-            );
-          }}
-        </DataTable>
-      )}
-      <Spacer h={7} />
-      {rows.length > 0 && (
-        <Pagination pageSizes={[10, 20, 30, 40, 50]} totalItems={rows.length} />
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <Fragment>
+                        <Spacer h={5} />
+                        <h4
+                          style={{
+                            textAlign: "center",
+                          }}
+                        >
+                          No pending accounts
+                        </h4>
+                        <Spacer h={5} />
+                      </Fragment>
+                    )}
+                  </TableContainer>
+                );
+              }}
+            </DataTable>
+          )}
+          <Spacer h={7} />
+          {rows.length > 0 && (
+            <Pagination
+              pageSizes={[10, 20, 30, 40, 50]}
+              totalItems={rows.length}
+            />
+          )}
+        </Fragment>
       )}
     </FlexGrid>
   );

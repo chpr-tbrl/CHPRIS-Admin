@@ -13,8 +13,8 @@ export const ROLES = [
     name: "Data collector",
   },
 ];
-
 export const ACCOUNT_STATUS = ["pending", "approved", "suspended"];
+export const MINIMAL_ACCOUNT_STATUS = ["pending", "suspended"];
 
 export const EXPORT_RANGE = [
   {

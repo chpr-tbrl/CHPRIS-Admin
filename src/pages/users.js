@@ -58,20 +58,28 @@ import {
   SUPER_ADMIN,
   EXPORT_RANGE,
   ACCOUNT_STATUS,
+  MINIMAL_ACCOUNT_STATUS,
   USERS_TABLE_HEADERS,
   USER_PERMISSION_UPDATE_SCHEMA,
 } from "schemas";
 import { authSelector } from "features";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useProfile } from "hooks";
 
 const Users = () => {
   const auth = useSelector(authSelector);
+  const { account, fetchingProfile } = useProfile(auth.uid);
   const [open, setOpen] = useState(false);
   const submitBtnRef = useRef(null);
   const navigate = useNavigate();
   const [showActions, setShowActions] = useState(false);
   const [selectedRow, setSelectedRow] = useState({});
+
+  const isPermitted = account.permitted_approve_accounts;
+  const PERMITTED_STATUS = isPermitted
+    ? ACCOUNT_STATUS
+    : MINIMAL_ACCOUNT_STATUS;
 
   const {
     data: users = [],
@@ -147,7 +155,7 @@ const Users = () => {
     }
   }
 
-  if (loadingRegions || loadingSites) return <Loading />;
+  if (fetchingProfile || loadingRegions || loadingSites) return <Loading />;
   return (
     <FlexGrid fullWidth className="page">
       <PageHeader
@@ -329,13 +337,13 @@ const Users = () => {
                   id="status"
                   titleText="Account status"
                   label="select status"
-                  items={ACCOUNT_STATUS}
+                  items={PERMITTED_STATUS}
                   itemToString={(item) => item}
                   invalid={errors.account_type ? true : false}
                   invalidText={errors.account_type?.message}
                   initialSelectedItem={findItemIndex(
                     selectedRow?.account_status,
-                    ACCOUNT_STATUS
+                    PERMITTED_STATUS
                   )}
                   onChange={(evt) => {
                     handleSetValue(
