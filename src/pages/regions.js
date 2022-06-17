@@ -227,48 +227,51 @@ const Regions = () => {
       {rows.length > 0 && (
         <Pagination pageSizes={[10, 20, 30, 40, 50]} totalItems={rows.length} />
       )}
-      <ComposedModal open={open}>
-        <ModalHeader
-          title="Add region"
-          label="Region management"
-          buttonOnClick={() => closeActions()}
-        />
-        <Form onSubmit={handleSubmit(handleCreateRegion)}>
-          <ModalBody aria-label="create new regions">
-            <Stack gap={7}>
-              <p>Create a new region</p>
-              <TextInput
-                id="name"
-                labelText="Region"
-                {...register("name", { required: "Please enter a region" })}
-                invalid={errors.name ? true : false}
-                invalidText={errors.name?.message}
-              />
-            </Stack>
-          </ModalBody>
 
-          <ModalFooter>
-            <Button
-              kind="secondary"
-              type="button"
-              onClick={() => closeActions()}
-            >
-              Cancel
-            </Button>
-            {!isUpdating ? (
-              <Button type="submit">Save</Button>
-            ) : (
-              <Column>
-                <InlineLoading
-                  status="active"
-                  iconDescription="Active loading indicator"
-                  description="processing ..."
+      {open && (
+        <ComposedModal open={open}>
+          <ModalHeader
+            title="Add region"
+            label="Region management"
+            buttonOnClick={() => closeActions()}
+          />
+          <Form onSubmit={handleSubmit(handleCreateRegion)}>
+            <ModalBody aria-label="create new regions">
+              <Stack gap={7}>
+                <p>Create a new region</p>
+                <TextInput
+                  id="name"
+                  labelText="Region"
+                  {...register("name", { required: "Please enter a region" })}
+                  invalid={errors.name ? true : false}
+                  invalidText={errors.name?.message}
                 />
-              </Column>
-            )}
-          </ModalFooter>
-        </Form>
-      </ComposedModal>
+              </Stack>
+            </ModalBody>
+
+            <ModalFooter>
+              <Button
+                kind="secondary"
+                type="button"
+                onClick={() => closeActions()}
+              >
+                Cancel
+              </Button>
+              {!isUpdating ? (
+                <Button type="submit">Save</Button>
+              ) : (
+                <Column>
+                  <InlineLoading
+                    status="active"
+                    iconDescription="Active loading indicator"
+                    description="processing ..."
+                  />
+                </Column>
+              )}
+            </ModalFooter>
+          </Form>
+        </ComposedModal>
+      )}
     </FlexGrid>
   );
 };

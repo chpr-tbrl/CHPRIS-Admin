@@ -79,6 +79,7 @@ const Sites = () => {
     try {
       await newSite(request).unwrap();
       toast.success("Site created");
+      closeActions();
       reset();
       refetch();
     } catch (error) {
