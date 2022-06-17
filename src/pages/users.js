@@ -33,15 +33,16 @@ import {
   TableBatchActions,
   TableToolbarSearch,
   InlineLoading,
+  Link,
 } from "@carbon/react";
 
 import { Renew, Account, GroupSecurity, Location } from "@carbon/icons-react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
-  useGetRegionsQuery,
   useGetSitesQuery,
   useGetUsersQuery,
+  useGetRegionsQuery,
   useUpdateUserMutation,
 } from "services";
 import {
@@ -156,6 +157,7 @@ const Users = () => {
   }
 
   if (fetchingProfile || loadingRegions || loadingSites) return <Loading />;
+
   return (
     <FlexGrid fullWidth className="page">
       <PageHeader
@@ -306,7 +308,7 @@ const Users = () => {
                   <p>{selectedRow?.id || "N/A"}</p>
                 </div>
                 <div>
-                  <FormLabel>Patient's name</FormLabel>
+                  <FormLabel>Name</FormLabel>
                   <p>{selectedRow?.name || "N/A"}</p>
                 </div>
               </Stack>
@@ -376,16 +378,21 @@ const Users = () => {
                 />
 
                 <FormGroup legendText="">
-                  <Checkbox
-                    labelText="Can see decrypted data"
-                    id="permitted_decrypted_data"
-                    {...register("permitted_decrypted_data")}
-                  />
-                  <Checkbox
-                    labelText="Can approve accounts"
-                    id="permitted_approve_accounts"
-                    {...register("permitted_approve_accounts")}
-                  />
+                  <Stack gap={3}>
+                    <Checkbox
+                      labelText="Can see decrypted data"
+                      id="permitted_decrypted_data"
+                      {...register("permitted_decrypted_data")}
+                    />
+                    <Checkbox
+                      labelText="Can approve accounts"
+                      id="permitted_approve_accounts"
+                      {...register("permitted_approve_accounts")}
+                    />
+                    <Link href="https://gdpr-info.eu/" target="_blank">
+                      GDPR policy
+                    </Link>
+                  </Stack>
                 </FormGroup>
 
                 <FormGroup legendText="Can export data in">

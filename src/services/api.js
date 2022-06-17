@@ -92,6 +92,13 @@ export const API = createApi({
         body: site,
       }),
     }),
+    deleteUserSite: builder.mutation({
+      query: ({ id, site }) => ({
+        url: `/admin/users/${id}/sites`,
+        method: "DELETE",
+        body: site,
+      }),
+    }),
   }),
 });
 // Export hooks for usage in functional components, which are
@@ -108,5 +115,6 @@ export const {
   useGetProfileQuery,
   useGetUserProfileQuery,
   useAddUserSiteMutation,
+  useDeleteUserSiteMutation,
   useUpdateUserStatusMutation,
 } = API;
