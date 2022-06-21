@@ -94,7 +94,7 @@ const Login = () => {
                 <InlineLoading
                   status="active"
                   iconDescription="Active loading indicator"
-                  description="Loading data..."
+                  description="processing ..."
                 />
               )}
             </Stack>
