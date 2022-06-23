@@ -67,7 +67,7 @@ export const API = createApi({
     }),
     getProfile: builder.query({
       query: () => ({
-        url: "/profile",
+        url: "/admin/profile",
         method: "GET",
       }),
     }),
