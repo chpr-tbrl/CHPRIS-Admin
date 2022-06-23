@@ -56,6 +56,8 @@ import {
 } from "utils";
 import {
   ROLES,
+  ADMIN,
+  MINIMAL_ROLES,
   SUPER_ADMIN,
   EXPORT_RANGE,
   ACCOUNT_STATUS,
@@ -77,8 +79,11 @@ const Users = () => {
   const [showActions, setShowActions] = useState(false);
   const [selectedRow, setSelectedRow] = useState({});
 
-  const isPermitted = account.permitted_approve_accounts;
-  const PERMITTED_STATUS = isPermitted
+  // conditional permission checks and approvals
+  const canApproveAccounts = account.permitted_approve_accounts;
+  const isAdmin = account.account_type === ADMIN;
+  const PERMITTED_ROLES = isAdmin ? MINIMAL_ROLES : ROLES;
+  const PERMITTED_STATUS = canApproveAccounts
     ? ACCOUNT_STATUS
     : MINIMAL_ACCOUNT_STATUS;
 
@@ -294,7 +299,7 @@ const Users = () => {
       )}
 
       {open && (
-        <ComposedModal size="sm" open={open} preventCloseOnClickOutside>
+        <ComposedModal size="lg" open={open} preventCloseOnClickOutside>
           <ModalHeader
             title="Update User"
             label="User management"
@@ -318,13 +323,13 @@ const Users = () => {
                   id="roles"
                   titleText="Role"
                   label="Select role"
-                  items={ROLES}
+                  items={PERMITTED_ROLES}
                   itemToString={(item) => item.name}
                   invalid={errors.account_type ? true : false}
                   invalidText={errors.account_type?.message}
                   initialSelectedItem={findItemIndex(
                     selectedRow?.account_type,
-                    ROLES
+                    PERMITTED_ROLES
                   )}
                   onChange={(evt) => {
                     handleSetValue(

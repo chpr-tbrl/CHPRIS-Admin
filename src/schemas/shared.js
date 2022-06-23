@@ -13,6 +13,13 @@ export const ROLES = [
     name: "Data collector",
   },
 ];
+export const MINIMAL_ROLES = [
+  {
+    id: "data_collector",
+    name: "Data collector",
+  },
+];
+
 export const ACCOUNT_STATUS = ["pending", "approved", "suspended"];
 export const MINIMAL_ACCOUNT_STATUS = ["pending", "suspended"];
 
