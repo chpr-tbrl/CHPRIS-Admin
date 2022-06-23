@@ -91,12 +91,12 @@ export const REGIONS_TABLE_HEADERS = [
 
 export const SITES_TABLE_HEADERS = [
   {
-    key: "code",
-    header: "Site code",
-  },
-  {
     key: "name",
     header: "Site name",
+  },
+  {
+    key: "code",
+    header: "Site code",
   },
 ];
 

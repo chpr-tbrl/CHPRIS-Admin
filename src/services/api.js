@@ -72,6 +72,13 @@ export const API = createApi({
         body: data,
       }),
     }),
+    updateSite: builder.mutation({
+      query: (data) => ({
+        url: `/admin/sites/${data.id}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
     getProfile: builder.query({
       query: () => ({
         url: "/admin/profile",
@@ -113,6 +120,7 @@ export const {
   useGetSitesQuery,
   useNewSiteMutation,
   useGetProfileQuery,
+  useUpdateSiteMutation,
   useGetUserProfileQuery,
   useAddUserSiteMutation,
   useUpdateRegionMutation,

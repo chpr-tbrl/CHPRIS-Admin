@@ -18,8 +18,11 @@ import {
   DataTableSkeleton,
   TableHeader,
   TableContainer,
+  TableBatchActions,
+  TableBatchAction,
   TableToolbarContent,
   TableToolbarSearch,
+  TableSelectRow,
   ModalBody,
   ModalFooter,
   ComposedModal,
@@ -27,8 +30,12 @@ import {
   InlineLoading,
 } from "@carbon/react";
 
-import { Renew, Location, Add } from "@carbon/icons-react";
-import { useGetSitesQuery, useNewSiteMutation } from "services";
+import { Renew, Location, Add, UpdateNow } from "@carbon/icons-react";
+import {
+  useGetSitesQuery,
+  useNewSiteMutation,
+  useUpdateSiteMutation,
+} from "services";
 import { SITES_TABLE_HEADERS } from "schemas";
 import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -36,6 +43,9 @@ import toast from "react-hot-toast";
 
 const Sites = () => {
   const [open, setOpen] = useState(false);
+  const [showActions, setShowActions] = useState(false);
+  const [selectedRow, setSelectedRow] = useState({});
+  const [isUpdate, setIsUpdate] = useState(false);
 
   //region id and name
   const { id, name } = useParams();
@@ -58,17 +68,43 @@ const Sites = () => {
     });
   }, [data]);
 
-  const [newSite, { isLoading: isUpdating }] = useNewSiteMutation();
+  const [newSite, { isLoading: isCreating }] = useNewSiteMutation();
+  const [updateSite, { isLoading: isUpdating }] = useUpdateSiteMutation();
 
   const {
     reset,
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      id: "",
+      name: "",
+      site_code: "",
+    },
+  });
+
+  function handleRowSelection(row) {
+    setShowActions(true);
+    let site = rows.find((item) => item.id === row.id);
+    reset({
+      id: site.id,
+      name: site.name,
+      site_code: site.site_code,
+    });
+    setIsUpdate(true);
+    setSelectedRow(site);
+  }
 
   function closeActions() {
+    setShowActions(false);
+    setIsUpdate(false);
+    setSelectedRow({});
     setOpen(false);
+    reset({
+      id: "",
+      name: "",
+    });
   }
 
   async function handleCreateSite(data) {
@@ -81,6 +117,17 @@ const Sites = () => {
       toast.success("Site created");
       closeActions();
       reset();
+      refetch();
+    } catch (error) {
+      // we handle errors with middleware
+    }
+  }
+
+  async function handleSiteUpdate(data) {
+    try {
+      await updateSite(data).unwrap();
+      toast.success("Site updated");
+      closeActions();
       refetch();
     } catch (error) {
       // we handle errors with middleware
@@ -105,10 +152,14 @@ const Sites = () => {
             getHeaderProps,
             getRowProps,
             getToolbarProps,
+            getBatchActionProps,
             onInputChange,
             getTableProps,
+            getSelectionProps,
             getTableContainerProps,
           }) => {
+            const batchActionProps = getBatchActionProps();
+
             return (
               <TableContainer
                 title=""
@@ -116,6 +167,21 @@ const Sites = () => {
                 {...getTableContainerProps()}
               >
                 <TableToolbar {...getToolbarProps()}>
+                  <TableBatchActions
+                    shouldShowBatchActions={showActions}
+                    onCancel={() => closeActions()}
+                    totalSelected={1}
+                  >
+                    <TableBatchAction
+                      tabIndex={
+                        batchActionProps.shouldShowBatchActions ? 0 : -1
+                      }
+                      renderIcon={UpdateNow}
+                      onClick={() => setOpen(true)}
+                    >
+                      Update
+                    </TableBatchAction>
+                  </TableBatchActions>
                   <TableToolbarContent aria-hidden={false}>
                     <TableToolbarSearch
                       persistent
@@ -144,6 +210,7 @@ const Sites = () => {
                   <Table {...getTableProps()}>
                     <TableHead>
                       <TableRow>
+                        <th scope="col" />
                         {headers.map((header, i) => (
                           <TableHeader key={i} {...getHeaderProps({ header })}>
                             {header.header}
@@ -153,7 +220,15 @@ const Sites = () => {
                     </TableHead>
                     <TableBody>
                       {rows.map((row, i) => (
-                        <TableRow key={i} {...getRowProps({ row })}>
+                        <TableRow
+                          key={i}
+                          {...getRowProps({ row })}
+                          onClick={() => handleRowSelection(row)}
+                        >
+                          <TableSelectRow
+                            {...getSelectionProps({ row })}
+                            checked={selectedRow?.id === row.id}
+                          />
                           {row.cells.map((cell) => (
                             <TableCell key={cell.id}>{cell.value}</TableCell>
                           ))}
@@ -187,14 +262,20 @@ const Sites = () => {
       {open && (
         <ComposedModal open={open}>
           <ModalHeader
-            title="Add site"
+            title={isUpdate ? "Update site" : "Add site"}
             label="Site management"
             buttonOnClick={() => closeActions()}
           />
-          <Form onSubmit={handleSubmit(handleCreateSite)}>
+          <Form
+            onSubmit={
+              isUpdate
+                ? handleSubmit(handleSiteUpdate)
+                : handleSubmit(handleCreateSite)
+            }
+          >
             <ModalBody aria-label="create new sites">
               <Stack gap={7}>
-                <p>Create a new site</p>
+                {!isUpdate && <p>Create a new site</p>}
                 <TextInput
                   id="name"
                   labelText="Site name"
@@ -223,8 +304,8 @@ const Sites = () => {
               >
                 Cancel
               </Button>
-              {!isUpdating ? (
-                <Button type="submit">Save</Button>
+              {!isUpdating || !isCreating ? (
+                <Button type="submit">{isUpdate ? "Update" : "Save"}</Button>
               ) : (
                 <Column>
                   <InlineLoading
