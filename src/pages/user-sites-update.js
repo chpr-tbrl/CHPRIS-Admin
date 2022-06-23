@@ -30,7 +30,11 @@ import {
 } from "@carbon/react";
 
 import { Renew, Location, Add, TrashCan } from "@carbon/icons-react";
-import { useGetUserProfileQuery, useAddUserSiteMutation } from "services";
+import {
+  useGetUserProfileQuery,
+  useAddUserSiteMutation,
+  useDeleteUserSiteMutation,
+} from "services";
 import { USER_SITES_UPDATE } from "schemas";
 import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -49,25 +53,9 @@ const Sites = () => {
     refetch,
   } = useGetUserProfileQuery(id);
 
-  const rows = useMemo(() => {
-    return data.map((item) => {
-      return {
-        ...item,
-        region: item.region.name,
-        action: (
-          <Button
-            renderIcon={TrashCan}
-            kind="danger--ghost"
-            onClick={() => alert("delete button")}
-          >
-            Delete
-          </Button>
-        ),
-      };
-    });
-  }, [data]);
-
   const [addUserSite, { isLoading: isUpdating }] = useAddUserSiteMutation();
+  const [deleteUserSite, { isLoading: isDeleting }] =
+    useDeleteUserSiteMutation();
 
   const {
     setValue,
@@ -99,11 +87,55 @@ const Sites = () => {
     try {
       await addUserSite(request).unwrap();
       toast.success("Site created");
+      closeActions();
       refetch();
     } catch (error) {
       // we handle errors with middleware
     }
   }
+
+  const rows = useMemo(() => {
+    async function handleDelete(siteID) {
+      let request = {
+        id,
+        site: [siteID],
+      };
+      try {
+        await deleteUserSite(request).unwrap();
+        toast.success("Site created");
+        closeActions();
+        refetch();
+      } catch (error) {
+        // we handle errors with middleware
+      }
+    }
+
+    return data.map((item) => {
+      return {
+        ...item,
+        region: item.region.name,
+        action: (
+          <Fragment>
+            {!isDeleting ? (
+              <Button
+                renderIcon={TrashCan}
+                kind="danger--ghost"
+                onClick={() => handleDelete(item.id)}
+              >
+                Delete
+              </Button>
+            ) : (
+              <InlineLoading
+                status="active"
+                iconDescription="Active loading indicator"
+                description="processing ..."
+              />
+            )}
+          </Fragment>
+        ),
+      };
+    });
+  }, [data, isDeleting, refetch, deleteUserSite, id]);
 
   return (
     <FlexGrid fullWidth className="page">
@@ -197,7 +229,9 @@ const Sites = () => {
           }}
         </DataTable>
       )}
+
       <Spacer h={7} />
+
       {rows.length > 0 && (
         <Pagination pageSizes={[10, 20, 30, 40, 50]} totalItems={rows.length} />
       )}

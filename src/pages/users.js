@@ -33,15 +33,16 @@ import {
   TableBatchActions,
   TableToolbarSearch,
   InlineLoading,
+  Link,
 } from "@carbon/react";
 
 import { Renew, Account, GroupSecurity, Location } from "@carbon/icons-react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
-  useGetRegionsQuery,
   useGetSitesQuery,
   useGetUsersQuery,
+  useGetRegionsQuery,
   useUpdateUserMutation,
 } from "services";
 import {
@@ -55,6 +56,8 @@ import {
 } from "utils";
 import {
   ROLES,
+  ADMIN,
+  MINIMAL_ROLES,
   SUPER_ADMIN,
   EXPORT_RANGE,
   ACCOUNT_STATUS,
@@ -76,8 +79,11 @@ const Users = () => {
   const [showActions, setShowActions] = useState(false);
   const [selectedRow, setSelectedRow] = useState({});
 
-  const isPermitted = account.permitted_approve_accounts;
-  const PERMITTED_STATUS = isPermitted
+  // conditional permission checks and approvals
+  const canApproveAccounts = account.permitted_approve_accounts;
+  const isAdmin = account.account_type === ADMIN;
+  const PERMITTED_ROLES = isAdmin ? MINIMAL_ROLES : ROLES;
+  const PERMITTED_STATUS = canApproveAccounts
     ? ACCOUNT_STATUS
     : MINIMAL_ACCOUNT_STATUS;
 
@@ -156,6 +162,7 @@ const Users = () => {
   }
 
   if (fetchingProfile || loadingRegions || loadingSites) return <Loading />;
+
   return (
     <FlexGrid fullWidth className="page">
       <PageHeader
@@ -292,7 +299,7 @@ const Users = () => {
       )}
 
       {open && (
-        <ComposedModal size="sm" open={open} preventCloseOnClickOutside>
+        <ComposedModal size="lg" open={open} preventCloseOnClickOutside>
           <ModalHeader
             title="Update User"
             label="User management"
@@ -306,7 +313,7 @@ const Users = () => {
                   <p>{selectedRow?.id || "N/A"}</p>
                 </div>
                 <div>
-                  <FormLabel>Patient's name</FormLabel>
+                  <FormLabel>Name</FormLabel>
                   <p>{selectedRow?.name || "N/A"}</p>
                 </div>
               </Stack>
@@ -316,13 +323,13 @@ const Users = () => {
                   id="roles"
                   titleText="Role"
                   label="Select role"
-                  items={ROLES}
+                  items={PERMITTED_ROLES}
                   itemToString={(item) => item.name}
                   invalid={errors.account_type ? true : false}
                   invalidText={errors.account_type?.message}
                   initialSelectedItem={findItemIndex(
                     selectedRow?.account_type,
-                    ROLES
+                    PERMITTED_ROLES
                   )}
                   onChange={(evt) => {
                     handleSetValue(
@@ -376,16 +383,21 @@ const Users = () => {
                 />
 
                 <FormGroup legendText="">
-                  <Checkbox
-                    labelText="Can see decrypted data"
-                    id="permitted_decrypted_data"
-                    {...register("permitted_decrypted_data")}
-                  />
-                  <Checkbox
-                    labelText="Can approve accounts"
-                    id="permitted_approve_accounts"
-                    {...register("permitted_approve_accounts")}
-                  />
+                  <Stack gap={3}>
+                    <Checkbox
+                      labelText="Can see decrypted data"
+                      id="permitted_decrypted_data"
+                      {...register("permitted_decrypted_data")}
+                    />
+                    <Checkbox
+                      labelText="Can approve accounts"
+                      id="permitted_approve_accounts"
+                      {...register("permitted_approve_accounts")}
+                    />
+                    <Link href="https://gdpr-info.eu/" target="_blank">
+                      GDPR policy
+                    </Link>
+                  </Stack>
                 </FormGroup>
 
                 <FormGroup legendText="Can export data in">

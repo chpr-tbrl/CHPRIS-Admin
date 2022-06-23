@@ -13,14 +13,7 @@ export const API = createApi({
   endpoints: (builder) => ({
     login: builder.mutation({
       query: (data) => ({
-        url: "/login",
-        method: "POST",
-        body: data,
-      }),
-    }),
-    signup: builder.mutation({
-      query: (data) => ({
-        url: "/signup",
+        url: "/admin/login",
         method: "POST",
         body: data,
       }),
@@ -59,6 +52,13 @@ export const API = createApi({
         body: data,
       }),
     }),
+    updateRegion: builder.mutation({
+      query: (data) => ({
+        url: `/admin/regions/${data.id}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
     getSites: builder.query({
       query: (id) => ({
         url: `/regions/${id}/sites`,
@@ -72,10 +72,24 @@ export const API = createApi({
         body: data,
       }),
     }),
+    updateSite: builder.mutation({
+      query: (data) => ({
+        url: `/admin/sites/${data.id}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
     getProfile: builder.query({
       query: () => ({
-        url: "/profile",
+        url: "/admin/profile",
         method: "GET",
+      }),
+    }),
+    updateProfile: builder.mutation({
+      query: (data) => ({
+        url: "/users",
+        method: data.method,
+        body: data,
       }),
     }),
     getUserProfile: builder.query({
@@ -89,6 +103,13 @@ export const API = createApi({
       query: ({ id, site }) => ({
         url: `/admin/users/${id}/sites`,
         method: "POST",
+        body: site,
+      }),
+    }),
+    deleteUserSite: builder.mutation({
+      query: ({ id, site }) => ({
+        url: `/admin/users/${id}/sites`,
+        method: "DELETE",
         body: site,
       }),
     }),
@@ -106,7 +127,11 @@ export const {
   useGetSitesQuery,
   useNewSiteMutation,
   useGetProfileQuery,
+  useUpdateSiteMutation,
   useGetUserProfileQuery,
   useAddUserSiteMutation,
+  useUpdateRegionMutation,
+  useUpdateProfileMutation,
+  useDeleteUserSiteMutation,
   useUpdateUserStatusMutation,
 } = API;
