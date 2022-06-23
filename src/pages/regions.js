@@ -30,8 +30,12 @@ import {
   InlineLoading,
 } from "@carbon/react";
 
-import { Renew, Location, TrashCan, Save, Add } from "@carbon/icons-react";
-import { useGetRegionsQuery, useNewRegionMutation } from "services";
+import { Renew, Location, UpdateNow, Add } from "@carbon/icons-react";
+import {
+  useGetRegionsQuery,
+  useNewRegionMutation,
+  useUpdateRegionMutation,
+} from "services";
 import { REGIONS_TABLE_HEADERS } from "schemas";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -41,6 +45,7 @@ const Regions = () => {
   const [open, setOpen] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [selectedRow, setSelectedRow] = useState({});
+  const [isUpdate, setIsUpdate] = useState(false);
 
   const {
     data = [],
@@ -51,13 +56,14 @@ const Regions = () => {
     refetchOnMountOrArgChange: true,
   });
 
-  const [newRegion, { isLoading: isUpdating }] = useNewRegionMutation();
+  const [newRegion, { isLoading: isCreating }] = useNewRegionMutation();
+  const [updateRegion, { isLoading: isUpdating }] = useUpdateRegionMutation();
 
   const rows = useMemo(() => {
     return data.map((item) => {
       return {
         ...item,
-        action: (
+        sites: (
           <Link className="cds--link" to={`../sites/${item.id}/${item.name}`}>
             view sites
           </Link>
@@ -71,12 +77,33 @@ const Regions = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      name: "",
+      id: "",
+    },
+  });
+
+  function handleRowSelection(row) {
+    setShowActions(true);
+    let region = rows.find((item) => item.id === row.id);
+    reset({
+      id: region.id,
+      name: region.name,
+    });
+    setIsUpdate(true);
+    setSelectedRow(region);
+  }
 
   function closeActions() {
     setShowActions(false);
+    setIsUpdate(false);
     setSelectedRow({});
     setOpen(false);
+    reset({
+      id: "",
+      name: "",
+    });
   }
 
   async function handleCreateRegion(data) {
@@ -84,7 +111,17 @@ const Regions = () => {
       await newRegion(data).unwrap();
       toast.success("region created");
       closeActions();
-      reset();
+      refetch();
+    } catch (error) {
+      // we handle errors with middleware
+    }
+  }
+
+  async function handleRegionUpdate(data) {
+    try {
+      await updateRegion(data).unwrap();
+      toast.success("region updated");
+      closeActions();
       refetch();
     } catch (error) {
       // we handle errors with middleware
@@ -132,16 +169,7 @@ const Regions = () => {
                       tabIndex={
                         batchActionProps.shouldShowBatchActions ? 0 : -1
                       }
-                      renderIcon={TrashCan}
-                      onClick={() => alert("delete acton")}
-                    >
-                      Delete
-                    </TableBatchAction>
-                    <TableBatchAction
-                      tabIndex={
-                        batchActionProps.shouldShowBatchActions ? 0 : -1
-                      }
-                      renderIcon={Save}
+                      renderIcon={UpdateNow}
                       onClick={() => setOpen(true)}
                     >
                       Update
@@ -193,7 +221,11 @@ const Regions = () => {
                     </TableHead>
                     <TableBody>
                       {rows.map((row, i) => (
-                        <TableRow key={i} {...getRowProps({ row })}>
+                        <TableRow
+                          key={i}
+                          {...getRowProps({ row })}
+                          onClick={() => handleRowSelection(row)}
+                        >
                           <TableSelectRow
                             {...getSelectionProps({ row })}
                             checked={selectedRow?.id === row.id}
@@ -231,14 +263,22 @@ const Regions = () => {
       {open && (
         <ComposedModal open={open}>
           <ModalHeader
-            title="Add region"
+            title={isUpdate ? "Update region" : "Add region"}
             label="Region management"
             buttonOnClick={() => closeActions()}
           />
-          <Form onSubmit={handleSubmit(handleCreateRegion)}>
-            <ModalBody aria-label="create new regions">
+          <Form
+            onSubmit={
+              isUpdate
+                ? handleSubmit(handleRegionUpdate)
+                : handleSubmit(handleCreateRegion)
+            }
+          >
+            <ModalBody
+              aria-label={isUpdate ? "Update a region" : "Create new regions"}
+            >
               <Stack gap={7}>
-                <p>Create a new region</p>
+                {!isUpdate && <p>Create a new region</p>}
                 <TextInput
                   id="name"
                   labelText="Region"
@@ -257,8 +297,8 @@ const Regions = () => {
               >
                 Cancel
               </Button>
-              {!isUpdating ? (
-                <Button type="submit">Save</Button>
+              {!isUpdating || !isCreating ? (
+                <Button type="submit">{isUpdate ? "Update" : "Save"}</Button>
               ) : (
                 <Column>
                   <InlineLoading
