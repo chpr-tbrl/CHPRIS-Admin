@@ -260,8 +260,9 @@ const Regions = () => {
         <Pagination pageSizes={[10, 20, 30, 40, 50]} totalItems={rows.length} />
       )}
 
+
       {open && (
-        <ComposedModal open={open}>
+        <ComposedModal  size= "sm" open={open}>
           <ModalHeader
             title={isUpdate ? "Update region" : "Add region"}
             label="Region management"
