@@ -78,7 +78,7 @@ const Sites = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      id: "",
+      id: id,
       name: "",
       site_code: "",
     },
