@@ -179,3 +179,11 @@
 form {
   max-width: 768px;
 }
+
+footer {
+  padding: layout.$spacing-04;
+  p {
+    font-size: layout.rem(14px);
+    text-align: center;
+  }
+}

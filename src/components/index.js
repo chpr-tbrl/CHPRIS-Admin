@@ -8,3 +8,4 @@ export * from "./TabBar";
 export * from "./Spacer";
 export * from "./RequireAuth";
 export * from "./PhoneNumberInput";
+export * from "./Footer";
