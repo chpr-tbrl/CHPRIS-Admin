@@ -19,9 +19,11 @@ cp env.example .env.production.local
 
 ```
 
-The .env file(s) contains all modifiable variables for each environment. Below are the defaults
+**.env.development.local** is used in development environments and **.env.production.local** is used when creating production builds.
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app), which specifies variable naming conventions
+
+Below are the defaults
 
 - PORT -> development port
 - SASS_PATH -> location of sass files
@@ -43,13 +45,13 @@ The page will reload if you make edits.
 
 You will also see any lint errors in the console.
 
-## Create a production build
+Create an optimized production build that can be hosted on servers. This step uses the variables in **.env.production.local**
 
 ```bash
 yarn build
 ```
 
-Builds the app for production. Check the `build` folder for deployable files once complete.
+Check the `build` folder for deployable files once complete.
 
 ## Deployment
 
