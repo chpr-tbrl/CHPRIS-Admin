@@ -31,6 +31,7 @@ export const PhoneNumberInput = ({ control, id, labelText, ...rest }) => {
         id={id}
         onChange={onChange}
         onBlur={onBlur}
+        labelText=""
         {...rest}
       />
     </FormGroup>

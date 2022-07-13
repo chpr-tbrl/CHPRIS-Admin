@@ -13,6 +13,8 @@ import {
   ModalBody,
   ModalFooter,
   ComposedModal,
+  RadioButton,
+  RadioButtonGroup,
   UnorderedList,
   PasswordInput,
   ListItem,
@@ -49,17 +51,26 @@ const Account = () => {
   }
 
   function preLoadForm() {
-    const { name, occupation, phone_number } = account;
+    const {
+      name,
+      occupation,
+      phone_number,
+      sms_notifications,
+      sms_notifications_type,
+    } = account;
     reset({
       name,
       occupation,
       phone_number,
+      sms_notifications,
+      sms_notifications_type,
     });
     toggleAccountModal();
   }
 
   const {
     reset,
+    setValue,
     control,
     register,
     handleSubmit,
@@ -131,13 +142,21 @@ const Account = () => {
           <FormLabel>Phone number</FormLabel>
           <p>{account?.phone_number || "N/A"}</p>
           <Spacer h={5} />
-          <FormLabel>Sites</FormLabel>
 
-          {account?.users_sites?.map((site) => (
-            <UnorderedList>
-              <ListItem>{site.region.name}</ListItem>
-              <UnorderedList nested>
-                <ListItem>{site.name}</ListItem>
+          <FormLabel>SMS notifications</FormLabel>
+          <p>{account?.sms_notifications + "" || "N/A"}</p>
+          <Spacer h={5} />
+
+          <FormLabel>SMS notification type</FormLabel>
+          <p>{account?.sms_notifications_type + "" || "N/A"}</p>
+          <Spacer h={5} />
+
+          <FormLabel>Sites</FormLabel>
+          {account?.users_sites?.map((site, idx) => (
+            <UnorderedList key={idx}>
+              <ListItem key={site.region.id}>{site.region.name}</ListItem>
+              <UnorderedList nested key={site.name}>
+                <ListItem key={site.site_code}>{site.name}</ListItem>
               </UnorderedList>
             </UnorderedList>
           ))}
@@ -260,6 +279,24 @@ const Account = () => {
                   invalid={errors.occupation ? true : false}
                   invalidText={errors.occupation?.message}
                 />
+
+                <RadioButtonGroup
+                  legendText="SMS notification type"
+                  name="sms_notifications_type"
+                  defaultSelected={account?.sms_notifications_type}
+                  onChange={(evt) =>
+                    setValue("sms_notifications_type", evt, {
+                      shouldValidate: true,
+                    })
+                  }
+                >
+                  <RadioButton
+                    labelText="Positive"
+                    value="positive"
+                    id="positive"
+                  />
+                  <RadioButton labelText="All" value="all" id="all" />
+                </RadioButtonGroup>
               </Stack>
               <button
                 type="submit"
