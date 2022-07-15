@@ -64,6 +64,7 @@ import {
   MINIMAL_ACCOUNT_STATUS,
   USERS_TABLE_HEADERS,
   USER_PERMISSION_UPDATE_SCHEMA,
+  DATA_COLLECTOR,
 } from "schemas";
 import { authSelector } from "features";
 import { useSelector } from "react-redux";
@@ -128,6 +129,7 @@ const Users = () => {
 
   const {
     reset,
+    watch,
     setValue,
     register,
     handleSubmit,
@@ -135,6 +137,8 @@ const Users = () => {
   } = useForm({
     resolver: yupResolver(USER_PERMISSION_UPDATE_SCHEMA),
   });
+
+  const isDataCollector = watch("account_type") === DATA_COLLECTOR;
 
   function handleRowSelection(row) {
     setShowActions(true);
@@ -389,11 +393,13 @@ const Users = () => {
                       id="permitted_decrypted_data"
                       {...register("permitted_decrypted_data")}
                     />
-                    <Checkbox
-                      labelText="Can approve accounts"
-                      id="permitted_approve_accounts"
-                      {...register("permitted_approve_accounts")}
-                    />
+                    {!isDataCollector && (
+                      <Checkbox
+                        labelText="Can approve accounts"
+                        id="permitted_approve_accounts"
+                        {...register("permitted_approve_accounts")}
+                      />
+                    )}
                     <Link href="https://gdpr-info.eu/" target="_blank">
                       GDPR policy
                     </Link>
