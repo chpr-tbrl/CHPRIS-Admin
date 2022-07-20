@@ -21,3 +21,4 @@ jobs:
           yarn install
           yarn build
           cp -r build/. /var/www/admin.html/
+          systemctl restart apache2
