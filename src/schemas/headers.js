@@ -76,12 +76,12 @@ export const PENDING_TABLE_HEADERS = [
 
 export const REGIONS_TABLE_HEADERS = [
   {
-    key: "id",
-    header: "Region ID",
-  },
-  {
     key: "name",
     header: "Region name",
+  },
+  {
+    key: "code",
+    header: "Region code",
   },
   {
     key: "sites",
