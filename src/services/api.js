@@ -18,6 +18,12 @@ export const API = createApi({
         body: data,
       }),
     }),
+    logOut: builder.mutation({
+      query: (data) => ({
+        url: "/admin/logout",
+        method: "POST",
+      }),
+    }),
     updateUser: builder.mutation({
       query: (data) => ({
         url: `/admin/users/${data.id}`,
@@ -119,6 +125,7 @@ export const API = createApi({
 // auto-generated based on the defined endpoints
 export const {
   useLoginMutation,
+  useLogOutMutation,
   useSignupMutation,
   useGetUsersQuery,
   useUpdateUserMutation,
