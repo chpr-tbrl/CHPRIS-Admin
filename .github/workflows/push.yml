@@ -17,7 +17,9 @@ jobs:
         port: ${{ secrets.PORT }}
         script: |
           cd /var/www/repos/CHPRIS-Admin
-          git pull origin testing
+          git checkout testing
+          git pull -r
+          rm -rf build
           yarn install
           yarn build
           cp -r build/. /var/www/admin.html/
