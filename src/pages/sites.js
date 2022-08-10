@@ -102,7 +102,7 @@ const Sites = () => {
     setSelectedRow({});
     setOpen(false);
     reset({
-      id: "",
+      id,
       name: "",
     });
   }
@@ -260,7 +260,7 @@ const Sites = () => {
       )}
 
       {open && (
-        <ComposedModal open={open}>
+        <ComposedModal open={open} preventCloseOnClickOutside>
           <ModalHeader
             title={isUpdate ? "Update site" : "Add site"}
             label="Site management"
