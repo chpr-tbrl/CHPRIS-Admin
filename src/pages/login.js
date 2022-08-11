@@ -55,14 +55,9 @@ const Login = () => {
   return (
     <Grid fullWidth>
       <Column sm={0} md={4} lg={8} className="page--article">
-        <div className="page--article__content">
-          <h2>Lorem ipsum</h2>
-          <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Nobis
-            debitis voluptate voluptatum, exercitationem reiciendis dolores
-            voluptatibus, tempora amet delectus magnam accusantium quibusdam
-            temporibus. Iste nisi nihil cum consequatur delectus eius?
-          </p>
+      <div className="page--article__content">
+          <h2 className="cds--type-semibold">CHPR</h2>
+          <p>Center for Health Promotion and Research</p>
         </div>
       </Column>
       <Column sm={4} md={4} lg={8} className="page--form">
