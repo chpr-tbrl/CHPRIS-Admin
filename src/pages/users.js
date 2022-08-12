@@ -414,7 +414,6 @@ const Users = () => {
                     {...register("permitted_export_types.0")}
                   />
                   <Checkbox
-                    disabled
                     labelText="PDF"
                     value="pdf"
                     id="permitted_export_types.1"
