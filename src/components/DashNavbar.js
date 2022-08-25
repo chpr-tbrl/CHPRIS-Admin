@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 import {
   Header,
+  Loading,
   SideNav,
   Switcher,
   HeaderName,
@@ -20,12 +22,14 @@ import {
 import { UserAvatar, Help } from "@carbon/icons-react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { useLogOutMutation } from "services";
 import { logout } from "features";
 
 export const DashNavbar = () => {
   const [panelOpen, setPanelOpen] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [logOut, { isLoading }] = useLogOutMutation();
 
   function togglePanel() {
     setPanelOpen(!panelOpen);
@@ -35,11 +39,19 @@ export const DashNavbar = () => {
     togglePanel();
     return navigate(path);
   }
-  function handleLogout() {
-    dispatch(logout());
-    navigate("/login");
+
+  async function handleLogout() {
+    try {
+      await logOut().unwrap();
+      toast.success("Logout Successful");
+      dispatch(logout());
+      navigate("/login");
+    } catch (error) {
+      // we handle errors with middleware
+    }
   }
 
+  if (isLoading) return <Loading />;
   return (
     <HeaderContainer
       render={({ isSideNavExpanded, onClickSideNavExpand }) => (

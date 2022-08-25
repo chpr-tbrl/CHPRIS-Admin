@@ -63,6 +63,7 @@ const Regions = () => {
     return data.map((item) => {
       return {
         ...item,
+        code: item.region_code,
         sites: (
           <Link className="cds--link" to={`../sites/${item.id}/${item.name}`}>
             view sites
@@ -79,8 +80,9 @@ const Regions = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      name: "",
       id: "",
+      name: "",
+      region_code: "",
     },
   });
 
@@ -90,6 +92,7 @@ const Regions = () => {
     reset({
       id: region.id,
       name: region.name,
+      region_code: region.region_code,
     });
     setIsUpdate(true);
     setSelectedRow(region);
@@ -103,6 +106,7 @@ const Regions = () => {
     reset({
       id: "",
       name: "",
+      region_code: "",
     });
   }
 
@@ -260,9 +264,8 @@ const Regions = () => {
         <Pagination pageSizes={[10, 20, 30, 40, 50]} totalItems={rows.length} />
       )}
 
-
       {open && (
-        <ComposedModal  size= "sm" open={open}>
+        <ComposedModal size="sm" open={open} preventCloseOnClickOutside>
           <ModalHeader
             title={isUpdate ? "Update region" : "Add region"}
             label="Region management"
@@ -286,6 +289,16 @@ const Regions = () => {
                   {...register("name", { required: "Please enter a region" })}
                   invalid={errors.name ? true : false}
                   invalidText={errors.name?.message}
+                />
+
+                <TextInput
+                  id="region_code"
+                  labelText="Region code"
+                  {...register("region_code", {
+                    required: "Please enter a region code",
+                  })}
+                  invalid={errors.region_code ? true : false}
+                  invalidText={errors.region_code?.message}
                 />
               </Stack>
             </ModalBody>
